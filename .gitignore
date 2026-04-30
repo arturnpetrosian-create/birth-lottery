@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.Python
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Build artifacts
+*.log
+
+# Data — крупный исходник UN не нужен в репо для деплоя.
+# Скачайте его сами при необходимости пересборки.
+data/WPP2024_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT.xlsx
+data/*.csv
+data/raw/
