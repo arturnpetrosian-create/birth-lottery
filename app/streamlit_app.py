@@ -1,7 +1,7 @@
 """
 streamlit_app.py
 ────────────────
-Атлас долей живорождений по странам и годам (1950–2024) по данным UN WPP.
+Атлас долей живорождений по странам и годам (1950–2024), UN WPP 2024.
 
 Источник:
     United Nations, Department of Economic and Social Affairs,
@@ -47,7 +47,10 @@ _ensure_repo_root_on_path()
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
-from domain.country_flag import country_title_ru  # noqa: E402
+from domain.country_flag import (  # noqa: E402
+    country_heading_html,
+    country_label_plain,
+)
 from domain.country_ru_cases import in_country_where  # noqa: E402
 from domain.nl_birth_query import parse_birth_description  # noqa: E402
 from domain.prb_ever_lived import (  # noqa: E402
@@ -115,7 +118,7 @@ import streamlit as st  # noqa: E402
 # Конфигурация страницы
 # ============================================================================
 st.set_page_config(
-    page_title="Доли живорождений по странам · ООН WPP 2024",
+    page_title="Доли живорождений по странам · WPP 2024",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -146,6 +149,7 @@ PALETTE = {
     # Две линии на графике сравнения — контрастные, не из одной гаммы
     "cmp_a":        "#1d4ed8",
     "cmp_b":        "#c2410c",
+    "share_line":   "#1e3a8a",
 }
 
 # Логарифмическая шкала доли страны в мировом объёме рождений за год
@@ -591,10 +595,10 @@ st.markdown(
     f"""
     <section>
         <div class="hero-eyebrow">ООН WPP 2024 · {YEAR_MIN}–{YEAR_MAX}</div>
-        <h1 class="hero-h1">Где рождались люди мира — по странам и годам</h1>
+        <h1 class="hero-h1">Живорождения по странам мира</h1>
         <p class="hero-sub">
-            Считаем долю живорождений каждой страны в мировом итоге за календарный год ({YEAR_MIN}—{YEAR_MAX}),
-            по оценкам <strong>World Population Prospects 2024</strong>. Учитываются только живорождения.
+            Доля страны в мировом итоге за календарный год — по оценкам
+            <strong>World Population Prospects 2024</strong>.
         </p>
     </section>
     """,
@@ -611,7 +615,7 @@ LABEL_FOR = {iso: c["r"] for iso, c in sorted_countries}
 
 
 def _country_opt(iso_code: str) -> str:
-    return country_title_ru(iso_code, LABEL_FOR[iso_code])
+    return country_label_plain(iso_code, LABEL_FOR[iso_code])
 ISO_TO_REGION = {iso: c["g"] for iso, c in COUNTRIES.items()}
 REGIONS = sorted({c["g"] for c in COUNTRIES.values()})
 
@@ -623,8 +627,8 @@ if "bl_iso" not in st.session_state:
 if st.session_state.bl_iso not in ISO_OPTIONS:
     st.session_state.bl_iso = default_iso0
 
-st.markdown("### Ввод: год и страна")
-with st.expander("Опционально: фраза вместо списков (пример: «Россия, 1992»)", expanded=False):
+st.markdown("### Год и страна")
+with st.expander("Текстом (например: Россия, 1992)", expanded=False):
     nl_txt = st.text_area(
         "Описание",
         placeholder="Например: родился в Бразилии в 2001 / Ukraine 1999 / Токио, Япония, 1975",
@@ -632,7 +636,7 @@ with st.expander("Опционально: фраза вместо списков
         label_visibility="collapsed",
         key="nl_free_text",
     )
-    nl_go = st.button("Применить к год и стране", type="primary", use_container_width=True, key="nl_submit")
+    nl_go = st.button("Подставить в поля ниже", type="primary", use_container_width=True, key="nl_submit")
     if nl_go:
         _p = parse_birth_description(nl_txt, COUNTRIES, YEAR_MIN, YEAR_MAX)
         if _p.ok and _p.iso and _p.year:
@@ -651,24 +655,19 @@ with st.expander("Опционально: фраза вместо списков
 col_yr, col_co = st.columns([1, 1], gap="large")
 with col_yr:
     year = st.slider(
-        "ГОД РОЖДЕНИЯ",
+        "Год",
         min_value=YEAR_MIN,
         max_value=YEAR_MAX,
         step=1,
         key="bl_year",
-        help=(
-            "Календарный год: доля рождений в стране в сумме рождений по миру за тот же год."
-        ),
+        help="Календарный год Y: births(страна, Y) / births(мир, Y).",
     )
 with col_co:
     iso = st.selectbox(
-        "СТРАНА (СОВРЕМЕННЫЕ ГРАНИЦЫ ООН)",
+        "Страна",
         options=ISO_OPTIONS,
         format_func=_country_opt,
-        help=(
-            "Оценки WPP строят как согласованные ряды по странам с 1950 г.; "
-            "подробности территориальной базы см. в docs/METHODOLOGY.md."
-        ),
+        help="Границы — как в WPP 2024 (современные государства, ретроспективно).",
     )
 
 
@@ -688,18 +687,17 @@ _one_line = (
     if c_births > 0 and math.isfinite(one_in)
     else "В этом ряду WPP для выбранной пары «страна — год» нет положительного числа живорождений."
 )
-_ct = country_title_ru(iso, country["r"])
+_head_main = country_heading_html(iso, country["r"])
 
 st.markdown(
     f"""
     <div class="result-block">
-        <div class="result-label">{_ct} · {year} · доля в мировом итоге живорождений</div>
+        <div class="result-label">{_head_main} · {year} · доля в мировом итоге живорождений</div>
         <div class="result-big">{fmt_pct(pct)}<span class="pct-sign">%</span></div>
         <div class="result-secondary">{_one_line}</div>
         <div class="result-secondary" style="margin-top:10px;font-size:0.95rem;">
-            Это не «вероятность родиться»: для живущего человека так не формулируют. Перед вами
-            <strong>доля страны</strong> в родившихся в мире за этот год. Она совпадёт с шансом вытащить
-            наугад «билет» этой страны, если каждому новорождённому в мире за год приписать равный вес.
+            Не «вероятность родиться», а <strong>доля страны</strong> среди всех родившихся в мире в {year} году.
+            При равных шансах на каждого новорождённого это то же число.
         </div>
     </div>
     """,
@@ -713,10 +711,9 @@ st.markdown(
 st.markdown(
     f"""
     <div class="section-eyebrow">01 · Карта</div>
-    <h2 class="section-title">Распределение рождений по странам в&nbsp;<em>{year}</em>&nbsp;году</h2>
+    <h2 class="section-title">Мир в&nbsp;<em>{year}</em>: доля каждой страны в живорождениях</h2>
     <p class="caption">
-        Доля страны в суммарных живорождениях мира за год. Шкала цвета — логарифмическая по доле,
-        чтобы отличать малые значения. Темнее — больше доля; светлая заливка — очень мало (&lt;~0,01%) или нет точки в наборе.
+        Цвет — доля в мировом итоге за год, шкала логарифмическая (иначе крупные и мелкие страны не различить).
     </p>
     """,
     unsafe_allow_html=True,
@@ -756,7 +753,7 @@ for code, c in COUNTRIES.items():
         {
             "iso": code,
             "name": c["r"],
-            "name_disp": country_title_ru(code, c["r"]),
+            "name_disp": country_label_plain(code, c["r"]),
             "births": b_k * 1000,
             "pct": p,
             "color": color_for_pct(p),
@@ -895,7 +892,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown(
     """
     <div class="section-eyebrow">02 · Изотип</div>
-    <h2 class="section-title">Тысяча долей мирового года</h2>
+    <h2 class="section-title">Тысяча клеток — доля страны в мировом годе</h2>
     """,
     unsafe_allow_html=True,
 )
@@ -961,9 +958,9 @@ st.markdown(
     <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;
         text-transform:uppercase;letter-spacing:0.08em;color:{PALETTE['ink_soft']};
         margin-top:8px;display:flex;gap:24px;flex-wrap:wrap;">
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;
             background:{PALETTE['terracotta']};border:1px solid {PALETTE['terracotta_d']};
-            margin-right:8px;vertical-align:-1px;"></span>{country_title_ru(iso, country['r'])}</span>
+            margin-right:8px;vertical-align:-1px;"></span>{country_heading_html(iso, country['r'])}</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;
             background:{PALETTE['paper']};border:1px solid {PALETTE['ink_light']};
             margin-right:8px;vertical-align:-1px;"></span>остальной мир</span>
@@ -1004,7 +1001,7 @@ share_in_region = (
 st.markdown(
     """
     <div class="section-eyebrow">03 · Контекст</div>
-    <h2 class="section-title">Что означают эти числа</h2>
+    <h2 class="section-title">Сводка по выбранной стране и году</h2>
     """,
     unsafe_allow_html=True,
 )
@@ -1030,7 +1027,7 @@ st.markdown(
         <div class="metric-tile" title="Источник: UN WPP 2024, Births (thousands).">
             <div class="metric-tile-label">Живорождений</div>
             <div class="metric-tile-value">{fmt_int(c_births)}</div>
-            <div class="metric-tile-foot">{country_title_ru(iso, country["r"])}, {year}</div>
+            <div class="metric-tile-foot">{country_heading_html(iso, country["r"])}, {year}</div>
         </div>
         <div class="metric-tile">
             <div class="metric-tile-label">В сутки</div>
@@ -1061,10 +1058,9 @@ st.markdown("<br>", unsafe_allow_html=True)
 st.markdown(
     """
     <div class="section-eyebrow">04 · Рейтинг стран</div>
-    <h2 class="section-title">Страны с наибольшим числом рождений<br>в выбранный год</h2>
+    <h2 class="section-title">Топ по числу живорождений в {year}</h2>
     <p class="caption">
-        Двенадцать лидеров по числу живорождений и выбранная страна, если её ещё нет в списке.
-        У столбца — доля в мировом итоге за год; слева — ранг и название.
+        12 стран с наибольшим объёмом; ваша добавляется, если её нет в списке. У столбца — доля в мировом итоге.
     </p>
     """,
     unsafe_allow_html=True,
@@ -1082,7 +1078,7 @@ for code, b_k in display_list:
         {
             "rank": real_rank,
             "country": COUNTRIES[code]["r"],
-            "label": f"{real_rank:02d}  {country_title_ru(code, COUNTRIES[code]['r'])}",
+            "label": f"{real_rank:02d}  {country_label_plain(code, COUNTRIES[code]['r'])}",
             "pct": b_k * 1000 / w_births * 100,
             "births": b_k * 1000,
             "is_user": code == iso,
@@ -1152,12 +1148,10 @@ st.plotly_chart(
 st.markdown(
     f"""
     <div class="section-eyebrow">05 · Динамика</div>
-    <h2 class="section-title">
-        Живорождения в&nbsp;<em>{country_title_ru(iso, country['r'])}</em>,<br>
-        <em>{YEAR_MIN}</em>—<em>{YEAR_MAX}</em>
-    </h2>
+    <h2 class="section-title">Динамика: {country_heading_html(iso, country['r'])}</h2>
     <p class="caption">
-        Числа по годам; маркер — выбранный год. Пунктир — сглаживание по окну 5 лет.
+        Слева — живорождения в год (WPP). Справа — доля этой же страны в мировом итоге за каждый год.
+        Заливка и пунктир относятся только к абсолютному ряду; линия доли — синяя, правая ось.
     </p>
     """,
     unsafe_allow_html=True,
@@ -1169,9 +1163,12 @@ trend_df = pd.DataFrame(
         "births": [b * 1000 for b in country["b"]],
     }
 )
+trend_df["share_pct"] = [share_pct(iso, int(y)) for y in trend_df["year"]]
 
-# 5-летнее скользящее среднее как «тренд»
+# 5-летнее скользящее среднее — только для абсолютного ряда
 trend_df["smooth"] = trend_df["births"].rolling(window=5, center=True, min_periods=1).mean()
+
+_share_hover = [[fmt_pct_chart(float(v))] for v in trend_df["share_pct"]]
 
 fig_line = go.Figure()
 fig_line.add_trace(
@@ -1182,8 +1179,8 @@ fig_line.add_trace(
         line=dict(color=PALETTE["terracotta_d"], width=1.6),
         fill="tozeroy",
         fillcolor="rgba(61,90,108,0.18)",
-        hovertemplate="<b>%{x}</b><br>%{y:,.0f} рождений<extra></extra>",
-        name="годовой ряд (число рождений)",
+        hovertemplate="<b>%{x}</b><br>%{y:,.0f} живорождений<extra></extra>",
+        name="живорождения в год",
     )
 )
 fig_line.add_trace(
@@ -1193,7 +1190,19 @@ fig_line.add_trace(
         mode="lines",
         line=dict(color=PALETTE["ink"], width=1.0, dash="dot"),
         hoverinfo="skip",
-        name="5-летнее сглаживание",
+        name="сглаживание (5 лет)",
+    )
+)
+fig_line.add_trace(
+    go.Scatter(
+        x=trend_df["year"],
+        y=trend_df["share_pct"],
+        yaxis="y2",
+        mode="lines",
+        line=dict(color=PALETTE["share_line"], width=2.2),
+        name="доля в мире, %",
+        customdata=_share_hover,
+        hovertemplate="<b>%{x}</b><br>%{customdata[0]}% мирового итога<extra></extra>",
     )
 )
 fig_line.add_trace(
@@ -1210,14 +1219,14 @@ fig_line.add_trace(
         textposition="top center",
         textfont=dict(family="IBM Plex Sans", color=PALETTE["ink"], size=14),
         showlegend=False,
-        hovertemplate=f"<b>{year}</b><br>{fmt_int(c_births)} рождений<extra></extra>",
+        hovertemplate=f"<b>{year}</b><br>{fmt_int(c_births)} живорождений<extra></extra>",
     )
 )
 fig_line.update_layout(
     paper_bgcolor=PALETTE["paper"],
     plot_bgcolor=PALETTE["paper"],
     height=340,
-    margin=dict(l=56, r=28, t=56, b=34),
+    margin=dict(l=56, r=58, t=56, b=34),
     xaxis=dict(
         showgrid=False,
         tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=11),
@@ -1231,11 +1240,22 @@ fig_line.update_layout(
         gridcolor=PALETTE["paper_darker"],
         tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
         title=dict(
-            text="живорождений в год (абсолютное число)",
+            text="живорождений в год",
             font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
         ),
         rangemode="tozero",
         tickformat=",",
+    ),
+    yaxis2=dict(
+        overlaying="y",
+        side="right",
+        showgrid=False,
+        rangemode="tozero",
+        tickfont=dict(family="IBM Plex Mono", color=PALETTE["share_line"], size=10),
+        title=dict(
+            text="доля в мире, %",
+            font=dict(family="IBM Plex Mono", size=10, color=PALETTE["share_line"]),
+        ),
     ),
     legend=dict(
         orientation="h",
@@ -1254,9 +1274,9 @@ st.plotly_chart(fig_line, width="stretch", config={"displayModeBar": False})
 st.markdown(
     """
     <div class="section-eyebrow">06 · Сравнение</div>
-    <h2 class="section-title">Две страны на одной временной шкале</h2>
+    <h2 class="section-title">Две страны: число живорождений по годам</h2>
     <p class="caption">
-        Ось&nbsp;Y — сколько детей родилось в год; считаем абсолютные объёмы, не долю в мире.
+        Только абсолютные объёмы WPP; долю в мире смотрите в разделе 05 для одной выбранной страны.
     </p>
     """,
     unsafe_allow_html=True,
@@ -1268,7 +1288,7 @@ cmp_default = _cmp_candidates[0] if _cmp_candidates else next(
     ISO_OPTIONS[0],
 )
 iso_b = st.selectbox(
-    "СТРАНА ДЛЯ СРАВНЕНИЯ",
+    "Вторая страна",
     options=ISO_OPTIONS,
     index=ISO_OPTIONS.index(cmp_default),
     format_func=_country_opt,
@@ -1276,8 +1296,8 @@ iso_b = st.selectbox(
 )
 country_b = COUNTRIES[iso_b]
 years_full = list(range(YEAR_MIN, YEAR_MAX + 1))
-_nm_cmp_a = country_title_ru(iso, country["r"])
-_nm_cmp_b = country_title_ru(iso_b, country_b["r"])
+_nm_cmp_a = country_label_plain(iso, country["r"])
+_nm_cmp_b = country_label_plain(iso_b, country_b["r"])
 
 fig_cmp = go.Figure()
 fig_cmp.add_trace(
@@ -1327,7 +1347,7 @@ fig_cmp.update_layout(
         gridcolor=PALETTE["paper_darker"],
         tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
         title=dict(
-            text="живорождений в год (абсолютное число)",
+            text="живорождений в год",
             font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
         ),
         rangemode="tozero",
@@ -1355,10 +1375,10 @@ _recip_prb = (1.0 / _p_you_prb) if _p_you_prb > 0 else float("inf")
 st.markdown(
     """
     <div class="section-eyebrow">07 · Среди всех людей в истории</div>
-    <h2 class="section-title">PRB: порядка 117&nbsp;млрд рождений за очень долгую историю</h2>
+    <h2 class="section-title">PRB: ~117 млрд рождений «за всю историю»</h2>
     <p class="caption">
-        Оценка Population Reference Bureau (Kaneda&nbsp;&amp;&nbsp;Haub, 2022): не «сколько людей жило разом»,
-        а модельная сумма рождений с глубокой древности. Цифры ниже — для масштаба, с большой погрешностью.
+        Оценка Population Reference Bureau (2022): сумма модельных рождений с глубокой древности.
+        Это не «сколько людей живёт одновременно»; порядок величины и интерпретация — отдельно от рядов ООН выше.
     </p>
     """,
     unsafe_allow_html=True,
@@ -1372,18 +1392,18 @@ _alive_pct_lbl = format_uncertain_small_percent(_alive_share)
 st.markdown(
     f"""
     <div class="result-block">
-        <div class="result-label">{country_title_ru(iso, country['r'])} · {year} · доля в оценке PRB (~117 млрд рождений)</div>
+        <div class="result-label">{country_heading_html(iso, country['r'])} · {year} · доля в оценке PRB (~117 млрд рождений)</div>
         <div class="result-big">{_prb_pct}<span class="pct-sign">%</span></div>
         <div class="result-secondary" style="margin-top:6px;">
-            от всех когда-либо родившихся в модели PRB (Kaneda &amp; Haub, 2022). Из-за погрешности самой оценки
-            (порядка ±20–30&nbsp;%) показаны только <strong>порядки величины</strong>, без лишних знаков.
+            Модель PRB (Kaneda &amp; Haub, 2022): показаны <strong>порядки</strong> — сама оценка ~117 млрд
+            неопределена примерно на ±20–30%.
         </div>
         <div class="result-main" style="margin-top:18px;">
             В пересчёте «один из <em>N</em>»: <strong>{_prb_one}</strong>{_alt_line}
         </div>
         <div class="result-secondary" style="margin-top:16px;">
-            Контекст: ныне живущие — около <strong>{_alive_pct_lbl}&nbsp;%</strong> от того же знаменателя PRB
-            (численность «World» на 1 июля 2024 по WPP / ~117 млрд; ориентир для масштаба, не прогноз).
+            Для сравнения: ныне живущие — около <strong>{_alive_pct_lbl}&nbsp;%</strong> того же знаменателя PRB
+            (оценка численности «World» на 2024 по WPP / те же ~117 млрд — ориентир, не прогноз).
         </div>
     </div>
     """,
@@ -1392,9 +1412,8 @@ st.markdown(
 st.markdown(
     f"""
     <p class="caption" style="font-size:0.85rem;margin-top:16px;">
-        Источник оценки: <a href="{PRB_ARTICLE_URL}" rel="noopener noreferrer">Toshiko Kaneda &amp; Carl Haub,
-        «How Many People Have Ever Lived on Earth?»</a>, Population Reference Bureau, 2022.
-        Совокупная модель неопределена примерно на ±20–30&nbsp;% по самой PRB; не смешивайте её с точными рядами ООН по годам выше.
+        <a href="{PRB_ARTICLE_URL}" rel="noopener noreferrer">Kaneda &amp; Haub (PRB, 2022)</a>.
+        Не смешивайте с годовыми долями ООН в разделах 01–06.
     </p>
     """,
     unsafe_allow_html=True,
@@ -1415,10 +1434,10 @@ if HISTORICAL is not None:
     st.markdown(
         """
         <div class="section-eyebrow">08 · Год во всей истории рождений</div>
-        <h2 class="section-title">Доля выбранного года среди <em>всех</em> когда-либо родившихся</h2>
+        <h2 class="section-title">Доля одного года среди всех когда-либо родившихся (сценарии <em>N</em>)</h2>
         <p class="caption">
-            Мировые живорождения ООН отнесены к трём грубым оценкам «всех рождений за историю» (<em>N</em>).
-            Интервал — не статистический доверительный.
+            Число рождений в мире за год из WPP отнесено к трём порядковым оценкам «всех рождений за историю».
+            Полоса на графике — не классический доверительный интервал.
         </p>
         """,
         unsafe_allow_html=True,

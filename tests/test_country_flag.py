@@ -2,15 +2,36 @@
 from __future__ import annotations
 
 
-def test_country_title_rus_has_name() -> None:
-    from domain.country_flag import country_title_ru
+def test_country_label_plain_uses_alpha3_suffix() -> None:
+    from domain.country_flag import country_label_plain
 
-    t = country_title_ru("RUS", "Россия")
-    assert "Россия" in t
+    t = country_label_plain("RUS", "Россия")
+    assert t == "Россия (RUS)"
+
+
+def test_iso3166_alpha2_known() -> None:
+    from domain.country_flag import iso3166_alpha2
+
+    assert iso3166_alpha2("RUS") == "RU"
+    assert iso3166_alpha2("USA") == "US"
+
+
+def test_country_heading_html_contains_flagcdn_and_name() -> None:
+    from domain.country_flag import country_heading_html
+
+    h = country_heading_html("DEU", "Германия")
+    assert "flagcdn.com" in h
+    assert "de.png" in h.lower()
+    assert "Германия" in h
+
+
+def test_country_title_ru_alias_plain() -> None:
+    from domain.country_flag import country_label_plain, country_title_ru
+
+    assert country_title_ru("FRA", "Франция") == country_label_plain("FRA", "Франция")
 
 
 def test_fmt_pct_chart_strips_trailing_zeros() -> None:
-    # Логика дублируется в streamlit_app; проверяем эквивалент локально
     import math
 
     def fmt_pct_chart(p: float) -> str:
