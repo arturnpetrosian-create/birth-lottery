@@ -52,11 +52,60 @@ from domain.nl_birth_query import parse_birth_description  # noqa: E402
 from domain.prb_ever_lived import (  # noqa: E402
     EVER_LIVED_PRB_2022,
     PRB_ARTICLE_URL,
-    format_one_in_uncertain,
-    format_uncertain_small_percent,
-    round_to_n_significant,
     share_of_prb_total,
 )
+
+# Форматтеры с отдельным модулем: при рассинхроне Cloud не падаем, если в старом
+# prb_ever_lived нет этих имён — они живут в prb_ui_uncertain.py.
+try:
+    from domain.prb_ui_uncertain import (  # noqa: E402
+        format_one_in_uncertain,
+        format_uncertain_small_percent,
+        round_to_n_significant,
+    )
+except ImportError:  # pragma: no cover — страховка для частичных деплоев
+    try:
+        from domain.prb_ever_lived import (  # type: ignore[no-redef]
+            format_one_in_uncertain,
+            format_uncertain_small_percent,
+            round_to_n_significant,
+        )
+    except ImportError:
+
+        def round_to_n_significant(x: float, n: int = 2) -> float:
+            if x == 0 or not math.isfinite(x):
+                return x
+            log = math.floor(math.log10(abs(x)))
+            factor = 10.0 ** (log - n + 1)
+            return round(x / factor) * factor
+
+        def format_uncertain_small_percent(share: float) -> str:
+            if share <= 0:
+                return "0"
+            pct = share * 100.0
+            body = f"{pct:.2g}".replace(".", ",")
+            return f"~{body}"
+
+        def _fmt_int_nbsp_local(n: float) -> str:
+            return f"{int(round(n)):,}".replace(",", "\u00a0")
+
+        def format_one_in_uncertain(recip: float) -> str:
+            if recip <= 0 or not math.isfinite(recip):
+                return "—"
+            r = round_to_n_significant(recip, 2)
+            if r >= 1_000_000_000:
+                b = r / 1_000_000_000
+                b = round_to_n_significant(b, 2)
+                return f"порядка 1 из {_fmt_int_nbsp_local(b)}\u00a0млрд"
+            if r >= 1_000_000:
+                m = r / 1_000_000
+                m = round_to_n_significant(m, 2)
+                return f"примерно 1 из {_fmt_int_nbsp_local(m)}\u00a0млн"
+            if r >= 10_000:
+                k = r / 1000
+                k = round_to_n_significant(k, 2)
+                return f"примерно 1 из {_fmt_int_nbsp_local(k)}\u00a0тыс."
+            return f"примерно 1 из {_fmt_int_nbsp_local(r)}"
 
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402

@@ -61,7 +61,7 @@ def test_format_tiny_percent_compact_ru() -> None:
 
 
 def test_format_uncertain_small_percent_prb_style() -> None:
-    from domain.prb_ever_lived import format_one_in_uncertain, format_uncertain_small_percent
+    from domain.prb_ui_uncertain import format_one_in_uncertain, format_uncertain_small_percent
 
     assert format_uncertain_small_percent(1.106e-5).startswith("~")
     assert "," in format_uncertain_small_percent(1.106e-5)

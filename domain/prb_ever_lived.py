@@ -6,8 +6,6 @@
 """
 from __future__ import annotations
 
-import math
-
 #: Совокупное число рождений с ~190 000 г. до н.э. до середины 2022 г. по PRB.
 #: См. Kaneda & Haub, «How Many People Have Ever Lived on Earth?», PRB, 2022.
 EVER_LIVED_PRB_2022: int = 117_000_000_000
@@ -48,46 +46,28 @@ def format_tiny_percent(share: float) -> str:
     return text.replace(".", ",")
 
 
-def round_to_n_significant(x: float, n: int = 2) -> float:
-    """Округление до n значащих цифр (для величин с большой относительной погрешностью)."""
-    if x == 0 or not math.isfinite(x):
-        return x
-    log = math.floor(math.log10(abs(x)))
-    factor = 10.0 ** (log - n + 1)
-    return round(x / factor) * factor
+from domain.prb_ui_uncertain import (  # noqa: E402
+    format_int_nbsp,
+    format_one_in_uncertain,
+    format_uncertain_small_percent,
+    round_to_n_significant,
+)
 
 
-def format_uncertain_small_percent(share: float) -> str:
-    """Доля 0…1 в процентах: ~2 значащие цифры, запятая — для оценок с погрешностью ±20–30 %."""
-    if share <= 0:
-        return "0"
-    pct = share * 100.0
-    body = f"{pct:.2g}".replace(".", ",")
-    return f"~{body}"
-
-
-def format_int_nbsp(n: float) -> str:
-    return f"{int(round(n)):,}".replace(",", "\u00a0")
-
-
-def format_one_in_uncertain(recip: float) -> str:
-    """Текст «примерно 1 из …» с округлением порядка величины."""
-    if recip <= 0 or not math.isfinite(recip):
-        return "—"
-    r = round_to_n_significant(recip, 2)
-    if r >= 1_000_000_000:
-        b = r / 1_000_000_000
-        b = round_to_n_significant(b, 2)
-        return f"порядка 1 из {format_int_nbsp(b)}\u00a0млрд"
-    if r >= 1_000_000:
-        m = r / 1_000_000
-        m = round_to_n_significant(m, 2)
-        return f"примерно 1 из {format_int_nbsp(m)}\u00a0млн"
-    if r >= 10_000:
-        k = r / 1000
-        k = round_to_n_significant(k, 2)
-        return f"примерно 1 из {format_int_nbsp(k)}\u00a0тыс."
-    return f"примерно 1 из {format_int_nbsp(r)}"
+__all__ = (  # удобство для статического анализа и явных реэкспортов
+    "EVER_LIVED_PRB_2022",
+    "PRB_ARTICLE_TITLE_RU",
+    "PRB_ARTICLE_URL",
+    "PRB_ROUGH_POPULATION_FOR_SHARE_2022",
+    "share_of_prb_total",
+    "one_in_reciprocal",
+    "format_tiny_percent",
+    "round_to_n_significant",
+    "format_uncertain_small_percent",
+    "format_int_nbsp",
+    "format_one_in_uncertain",
+    "humanize_one_in",
+)
 
 
 def humanize_one_in(recip: float) -> str:
