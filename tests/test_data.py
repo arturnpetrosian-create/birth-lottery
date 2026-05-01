@@ -60,6 +60,15 @@ def test_format_tiny_percent_compact_ru() -> None:
     assert format_tiny_percent(0.15).replace(",", ".") == "15.00"
 
 
+def test_format_uncertain_small_percent_prb_style() -> None:
+    from domain.prb_ever_lived import format_one_in_uncertain, format_uncertain_small_percent
+
+    assert format_uncertain_small_percent(1.106e-5).startswith("~")
+    assert "," in format_uncertain_small_percent(1.106e-5)
+    s = format_one_in_uncertain(90417.0)
+    assert "90" in s and "тыс" in s
+
+
 def test_metadata_world_births_sum_present(dataset: dict) -> None:
     meta = dataset["metadata"]
     assert "world_births_sum_1950_2024_persons" in meta

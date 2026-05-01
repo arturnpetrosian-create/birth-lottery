@@ -165,5 +165,5 @@ def parse_birth_description(
         iso=iso,
         country_ru=countries[iso]["r"],
         ok=True,
-        message_ru=f"Принято: **{countries[iso]['r']}**, **{year}**. Слайдеры ниже выставлены; ниже — короткий разбор по данным ООН WPP.",
+        message_ru=f"Применено: **{countries[iso]['r']}**, **{year}** — поля года и страны обновлены.",
     )
