@@ -18,12 +18,16 @@ streamlit_app.py
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
-import pandas as pd
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
-from domain.prb_ever_lived import (
+import pandas as pd  # noqa: E402
+from domain.prb_ever_lived import (  # noqa: E402
     EVER_LIVED_PRB_2022,
     PRB_ARTICLE_URL,
     format_tiny_percent,
@@ -31,8 +35,8 @@ from domain.prb_ever_lived import (
     one_in_reciprocal,
     share_of_prb_total,
 )
-import plotly.graph_objects as go
-import streamlit as st
+import plotly.graph_objects as go  # noqa: E402
+import streamlit as st  # noqa: E402
 
 # ============================================================================
 # Конфигурация страницы
@@ -337,7 +341,7 @@ st.markdown(
 # ============================================================================
 # Загрузка данных
 # ============================================================================
-ROOT = Path(__file__).parent.parent
+ROOT = _ROOT
 DATA_PATH = ROOT / "data" / "births_compact.json"
 
 
