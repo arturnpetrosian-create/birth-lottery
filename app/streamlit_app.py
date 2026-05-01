@@ -30,8 +30,8 @@ import pandas as pd  # noqa: E402
 from domain.prb_ever_lived import (  # noqa: E402
     EVER_LIVED_PRB_2022,
     PRB_ARTICLE_URL,
+    PRB_READINGS_RU,
     format_tiny_percent,
-    humanize_one_in,
     one_in_reciprocal,
     share_of_prb_total,
 )
@@ -330,7 +330,10 @@ st.markdown(
     #MainMenu {{ visibility: hidden; }}
     footer {{ visibility: hidden; }}
     header[data-testid="stHeader"] {{
-        background: transparent;
+        display: none !important;
+    }}
+    div[data-testid="stToolbar"] {{
+        display: none !important;
     }}
     </style>
     """,
@@ -397,13 +400,9 @@ def fmt_pct(p: float) -> str:
 
 
 def fmt_share_among_all(p: float) -> str:
-    """Доля 0…1 среди всех родившихся — в процентах с адаптивной точностью."""
+    """Доля 0…1 среди всех родившихся — в процентах, до 3 значащих цифр."""
     x = p * 100.0
-    if x >= 0.1:
-        return f"{x:.4f}"
-    if x >= 0.01:
-        return f"{x:.5f}"
-    return f"{x:.6f}"
+    return f"{x:.3g}".replace(".", ",")
 
 
 # ============================================================================
@@ -411,11 +410,6 @@ def fmt_share_among_all(p: float) -> str:
 # ============================================================================
 st.markdown(
     """
-    <header class="masthead">
-        <div class="masthead-left">Демографический атлас · 2026</div>
-        <div class="masthead-right">United Nations · World Population Prospects 2024</div>
-    </header>
-
     <section>
         <div class="hero-eyebrow">Условные вероятности по стране и году</div>
         <h1 class="hero-h1">Насколько вероятно было<br><em>родиться здесь</em><br>в выбранный год?</h1>
@@ -1116,26 +1110,33 @@ st.markdown(
     <h2 class="section-title">Оценка PRB: с появления <em>Homo sapiens</em> родилось порядка
     117&nbsp;млрд человек</h2>
     <p class="caption">
-        Другая перспектива: не «доля в своём годе», а доля <strong>ваших живорождений
-        (страна&nbsp;+ календарный год)</strong> в совокупном числе рождений по модели
-        Population Reference Bureau (Kaneda&nbsp;&amp;&nbsp;Haub, 2022). Это всё ещё модельный
-        счётчик, не «точная перепись истории»; у PRB указана широкая неопределённость (порядка
-        ±20–30&nbsp;%). Цифра 117&nbsp;млрд относится к <strong>рождениям</strong>, не к
-        когда-либо одновременно жившим.
+        Здесь другой масштаб, чем в блоках выше: не доля страны в <em>мировом</em> годе, а доля
+        <strong>числа рождений в выбранной стране и календарном годе</strong> (оценка ООН WPP)
+        в совокупной модели всех рождений за историю по PRB (Kaneda&nbsp;&amp;&nbsp;Haub, 2022).
+        Это модельный счётчик с большой неопределённостью (у PRB — порядка ±20–30&nbsp;%);
+        117&nbsp;млрд — именно <strong>рождения</strong>, а не «все, кто жил одновременно».
     </p>
     """,
     unsafe_allow_html=True,
 )
+_recip_line = (
+    fmt_int(int(round(_recip_prb)))
+    if 0 < _recip_prb < float("inf")
+    else "—"
+)
 st.markdown(
     f"""
     <div class="result-block">
-        <div class="result-label">Доля среди ~117 млрд рождений (PRB)&nbsp;· {country['r']}, {year}</div>
+        <div class="result-label">Оценка PRB (~117 млрд рождений) · {country['r']}, {year}</div>
         <div class="result-main">
-            {humanize_one_in(_recip_prb)} — или около <strong>{format_tiny_percent(_p_you_prb)}&nbsp;%</strong>
+            Около <strong>{format_tiny_percent(_p_you_prb)}&nbsp;%</strong> от совокупного числа рождений
+            в этой реконструкции.
         </div>
         <div class="result-secondary" style="margin-top:10px;font-size:0.95rem;">
-            Мысленный эксперимент: один равновероятный выбор среди всех рождений в масштабе оценки PRB —
-            без подмены на «вероятность родиться» для уже существующего человека.
+            Иначе говоря, при <em>мысленном</em> равновероятном выборе одного рождения из пула PRB
+            масштаб «один к
+            <strong>{_recip_line}</strong>» по порядку величины совпадает с этой долей
+            (речь не о личной «судьбе», а об удобной интерпретации очень малой вероятности).
         </div>
     </div>
     """,
@@ -1168,7 +1169,11 @@ with c3:
 st.caption(
     f"Пулы для контекста: все живорождения мира 1950–2024 в этом приложении ≈ "
     f"{_share_wpp_window_in_prb*100:.1f}% от 117 млрд (PRB); "
-    f"год {year} (мир) ≈ {_share_year_world_in_prb*100:.3f}% от 117 млрд."
+    f"год {year} (мир) ≈ {_share_year_world_in_prb*100:.2f}% от 117 млрд (PRB)."
+)
+_readings_html = "".join(
+    f'<li style="margin:0.35em 0;"><a href="{url}" rel="noopener noreferrer">{title}</a></li>'
+    for title, url in PRB_READINGS_RU
 )
 st.markdown(
     f"""
@@ -1178,6 +1183,12 @@ st.markdown(
         «How Many People Have Ever Lived on Earth?»</a>, Population Reference Bureau, 2022.
         Погрешность порядка ±20–30&nbsp;% по самой PRB; модель 190&nbsp;000 г. до н.э. — сер. 2022.
     </p>
+    <p class="caption" style="font-size:0.88rem;margin-top:12px;">
+        <strong>Читать по теме</strong> (оценки населения и рождаемости, условные вероятности):
+    </p>
+    <ul style="font-size:0.88rem;color:{PALETTE["ink_soft"]};margin:0.2em 0 0 1.2em;padding:0;">
+        {_readings_html}
+    </ul>
     """,
     unsafe_allow_html=True,
 )

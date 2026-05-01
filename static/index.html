@@ -576,11 +576,6 @@ html, body {
 <body>
 <div class="container">
 
-<header class="masthead">
-  <div class="masthead-left">Демографический атлас · 2026</div>
-  <div class="masthead-right">United Nations · World Population Prospects 2024</div>
-</header>
-
 <section class="hero">
   <div class="hero-eyebrow">Условные вероятности по стране и году</div>
   <h1>Насколько вероятно было<br><em>родиться здесь</em><br>в выбранный год?</h1>
@@ -676,12 +671,15 @@ html, body {
   <div class="section-heading">§ VI · Среди всех, кто когда-либо рождался</div>
   <h2 class="section-title">Оценка PRB: с появления <em>Homo sapiens</em> родилось порядка 117&nbsp;млрд человек</h2>
   <p class="caption">
-    <a href="https://www.prb.org/articles/how-many-people-have-ever-lived-on-earth/" target="_blank" rel="noopener noreferrer">Toshiko Kaneda &amp; Carl Haub (Population Reference Bureau, 2022)</a>:
-    совокупное число <strong>рождений</strong> в модели от ~190&nbsp;000 г. до н.э. до середины 2022&nbsp;г.
-    — не «все одновременно жившие». У оценки широкая неопределённость (PRB: порядка ±20–30&nbsp;%).
+    Другой масштаб, чем в блоках выше: не доля страны в <em>мировом</em> годе, а доля
+    <strong>числа рождений в выбранной стране и календарном году</strong> (оценка ООН WPP) в совокупной
+    модели всех рождений за историю по
+    <a href="https://www.prb.org/articles/how-many-people-have-ever-lived-on-earth/" target="_blank" rel="noopener noreferrer">Kaneda &amp; Haub (PRB, 2022)</a>.
+    Это модельный счётчик с большой неопределённостью (у&nbsp;PRB порядка ±20–30&nbsp;%);
+    117&nbsp;млрд — именно <strong>рождения</strong>, не «все одновременно жившие».
   </p>
   <div class="result-block" style="margin-bottom: 32px;">
-    <div class="result-label">Календарная пара страна + год на фоне ~117 млрд (PRB)</div>
+    <div class="result-label">Оценка PRB (~117 млрд рождений)</div>
     <div class="result-secondary" id="prbOneLine" style="font-size:1.35rem;color:var(--ink);">—</div>
     <div class="result-secondary" id="prbPctLine" style="margin-top:8px;">—</div>
   </div>
@@ -690,6 +688,13 @@ html, body {
     <div class="prb-cell"><strong>Сумма рождений в стране, 1950–2024 (WPP)</strong><span id="prbCell2">—</span></div>
     <div class="prb-cell"><strong>Ныне живущие (оценка WPP 2024)</strong><span id="prbCell3">—</span></div>
   </div>
+  <p class="caption" style="margin-top:12px;"><strong>Читать по теме</strong> (оценки и методы):</p>
+  <ul class="caption" style="margin:0.2em 0 1em 1.2em;line-height:1.55;">
+    <li><a href="https://www.prb.org/articles/how-many-people-have-ever-lived-on-earth/" target="_blank" rel="noopener noreferrer">Kaneda &amp; Haub (PRB, 2022): сколько людей когда-либо родилось</a></li>
+    <li><a href="https://ourworldindata.org/births" target="_blank" rel="noopener noreferrer">Our World in Data: рождаемость и численность</a></li>
+    <li><a href="https://population.un.org/wpp/Methodology/" target="_blank" rel="noopener noreferrer">ООН, WPP: методология оценок</a></li>
+    <li><a href="https://www.bbc.com/future/article/20190311-how-many-people-have-ever-lived-on-earth" target="_blank" rel="noopener noreferrer">BBC Future (English): how many people have ever lived</a></li>
+  </ul>
   <p class="prb-foot">
     Пул 1950–2024 в этом приложении: ≈ <span id="prbPoolUn">—</span>% от 117 млрд. Выбранный <strong>мировой</strong> год: ≈ <span id="prbPoolYear">—</span>% от 117 млрд.
     <br><br>
@@ -724,17 +729,10 @@ const YEAR_MAX = DATA.metadata.year_end;
 const EVER_LIVED_PRB_2022 = 117e9;
 const PRB_FALLBACK_POP_THOUSANDS = 8120000;
 function prbTinyPct(share) {
-  const p = share * 100;
-  if (p >= 0.01) return p.toFixed(6);
-  if (p >= 0.001) return p.toFixed(7);
-  return p.toFixed(8);
-}
-function prbHumanOneIn(recip) {
-  if (!isFinite(recip) || recip <= 0) return '—';
-  if (recip < 1000) return '≈ 1 из ' + fmt(recip);
-  if (recip < 1e6) return '≈ 1 из ' + fmt(recip);
-  if (recip < 1e9) return '≈ 1 из ' + (recip / 1e6).toFixed(2).replace('.', ',') + ' млн';
-  return '≈ 1 из ' + (recip / 1e9).toFixed(2).replace('.', ',') + ' млрд';
+  const pct = share * 100;
+  if (!(pct > 0)) return '0';
+  const s = pct >= 1 ? pct.toFixed(2) : String(Number(pct.toPrecision(3)));
+  return s.replace('.', ',');
 }
 
 function birthsForCountry(iso, year) {
@@ -987,14 +985,19 @@ function update() {
   for (let i = 0; i < country.b.length; i++) sumC += country.b[i];
   sumC *= 1000;
   const pYou = cBirths / EVER_LIVED_PRB_2022;
-  const oneInPrb = 1 / pYou;
-  $('prbOneLine').textContent = prbHumanOneIn(oneInPrb);
-  $('prbPctLine').textContent = '≈ ' + prbTinyPct(pYou) + ' % от оценки PRB (117 млрд рождений)';
+  $('prbOneLine').textContent =
+    'Около ' + prbTinyPct(pYou) + ' % от совокупного числа рождений в реконструкции PRB (~117 млрд).';
+  $('prbPctLine').textContent =
+    pYou > 0
+      ? 'При мысленном равновероятном выборе порядок «один к ' +
+        fmt(Math.round(1 / pYou)) +
+        '» по величине соответствует этой доле (не «личный шанс», а мысленный эксперимент).'
+      : '—';
   $('prbCell1').textContent = ' ' + prbTinyPct(pYou) + ' %';
   $('prbCell2').textContent = ' ' + prbTinyPct(sumC / EVER_LIVED_PRB_2022) + ' %';
   $('prbCell3').textContent = ' ' + prbTinyPct(aliveShare) + ' % (~' + (alive / 1e9).toFixed(2).replace('.', ',') + ' млрд чел.)';
   $('prbPoolUn').textContent = (shareUn * 100).toFixed(1);
-  $('prbPoolYear').textContent = (shareYrWorld * 100).toFixed(3);
+  $('prbPoolYear').textContent = (shareYrWorld * 100).toFixed(2);
 
   // Top-12 + user's row
   const topN = ranking.slice(0, 12);

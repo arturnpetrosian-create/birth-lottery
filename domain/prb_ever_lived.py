@@ -15,6 +15,26 @@ PRB_ARTICLE_TITLE_RU = (
 )
 PRB_ARTICLE_URL: str = "https://www.prb.org/articles/how-many-people-have-ever-lived-on-earth/"
 
+# Материалы для читателя: модельные оценки «всех рождений», методология WPP, поп-научное введение
+PRB_READINGS_RU: tuple[tuple[str, str], ...] = (
+    (
+        "Kaneda & Haub (PRB, 2022): сколько людей когда-либо родилось",
+        PRB_ARTICLE_URL,
+    ),
+    (
+        "Our World in Data: рождаемость и численность (данные и графики)",
+        "https://ourworldindata.org/births",
+    ),
+    (
+        "ООН, World Population Prospects: методология оценок",
+        "https://population.un.org/wpp/Methodology/",
+    ),
+    (
+        "BBC Future (English): how many people have ever lived",
+        "https://www.bbc.com/future/article/20190311-how-many-people-have-ever-lived-on-earth",
+    ),
+)
+
 #: Ориентир доли ныне живущих среди всех когда-либо родившихся (PRB используют ~8 млрд / 117 млрд).
 #: В интерфейсе приоритетно брать численность из метаданных WPP (метка 2024), если есть.
 PRB_ROUGH_POPULATION_FOR_SHARE_2022: int = 8_000_000_000
@@ -33,12 +53,17 @@ def one_in_reciprocal(share: float) -> float:
 
 
 def format_tiny_percent(share: float) -> str:
+    """До 3 значащих цифр; десятичная запятая (принято для русскоязычного UI)."""
+    if share <= 0:
+        return "0"
     pct = share * 100.0
-    if pct >= 0.01:
-        return f"{pct:.6f}"
-    if pct >= 0.001:
-        return f"{pct:.7f}"
-    return f"{pct:.8f}"
+    if pct >= 10:
+        text = f"{pct:.2f}"
+    elif pct >= 1:
+        text = f"{pct:.2f}"
+    else:
+        text = f"{pct:.3g}"
+    return text.replace(".", ",")
 
 
 def humanize_one_in(recip: float) -> str:

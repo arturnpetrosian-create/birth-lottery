@@ -52,6 +52,14 @@ def test_benchmark_births(dataset: dict) -> None:
     assert row("JPN", 1950) == pytest.approx(2461.5, abs=1.0)
 
 
+def test_format_tiny_percent_compact_ru() -> None:
+    from domain.prb_ever_lived import format_tiny_percent
+
+    assert "," in format_tiny_percent(1.106e-5)
+    assert len(format_tiny_percent(1.106e-5)) <= 8
+    assert format_tiny_percent(0.15).replace(",", ".") == "15.00"
+
+
 def test_metadata_world_births_sum_present(dataset: dict) -> None:
     meta = dataset["metadata"]
     assert "world_births_sum_1950_2024_persons" in meta
