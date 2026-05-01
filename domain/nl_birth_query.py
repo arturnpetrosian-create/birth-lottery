@@ -18,11 +18,12 @@ ISO_HINTS: dict[str, str] = {
     "ссср": "RUS",
     "soviet": "RUS",
     "russia": "RUS",
-    "ukraine": "UKR",
     "украин": "UKR",
+    "ukraine": "UKR",
     "беларус": "BLR",
     "belarus": "BLR",
     "казах": "KAZ",
+    "казахстан": "KAZ",
     "узбек": "UZB",
     "сша": "USA",
     "америк": "USA",
@@ -46,11 +47,84 @@ ISO_HINTS: dict[str, str] = {
     "британ": "GBR",
     "uk": "GBR",
     "англи": "GBR",
-    "казахстан": "KAZ",
     "армени": "ARM",
     "грузи": "GEO",
     "азербайджан": "AZE",
     "бангладеш": "BGD",
+    "бразил": "BRA",
+    "brazil": "BRA",
+    "мексик": "MEX",
+    "mexico": "MEX",
+    "канада": "CAN",
+    "canada": "CAN",
+    "испани": "ESP",
+    "spain": "ESP",
+    "итали": "ITA",
+    "italy": "ITA",
+    "австрал": "AUS",
+    "australia": "AUS",
+    "египет": "EGY",
+    "egypt": "EGY",
+    "юар": "ZAF",
+    "south africa": "ZAF",
+    "пакистан": "PAK",
+    "pakistan": "PAK",
+    "индонез": "IDN",
+    "indonesia": "IDN",
+    "филиппин": "PHL",
+    "philippines": "PHL",
+    "вьетнам": "VNM",
+    "vietnam": "VNM",
+    "аргентин": "ARG",
+    "argentina": "ARG",
+    "коломб": "COL",
+    "colombia": "COL",
+    "чили": "CHL",
+    "chile": "CHL",
+    "перу": "PER",
+    "peru": "PER",
+    "норвег": "NOR",
+    "norway": "NOR",
+    "швед": "SWE",
+    "sweden": "SWE",
+    "финлянд": "FIN",
+    "finland": "FIN",
+    "нидерланд": "NLD",
+    "netherlands": "NLD",
+    "holland": "NLD",
+    "бельги": "BEL",
+    "belgium": "BEL",
+    "австри": "AUT",
+    "austria": "AUT",
+    "швейцар": "CHE",
+    "switzerland": "CHE",
+    "ирланд": "IRL",
+    "ireland": "IRL",
+    "португал": "PRT",
+    "portugal": "PRT",
+    "грец": "GRC",
+    "greece": "GRC",
+    "чех": "CZE",
+    "czech": "CZE",
+    "венгр": "HUN",
+    "hungary": "HUN",
+    "румын": "ROU",
+    "romania": "ROU",
+    "болгар": "BGR",
+    "bulgaria": "BGR",
+    "хорват": "HRV",
+    "croatia": "HRV",
+    "серб": "SRB",
+    "serbia": "SRB",
+    "израил": "ISR",
+    "israel": "ISR",
+    "ирак": "IRQ",
+    "iraq": "IRQ",
+    "иран": "IRN",
+    "iran": "IRN",
+    "сауд": "SAU",
+    "saudi": "SAU",
+    "оаэ": "ARE",
 }
 
 
@@ -72,7 +146,8 @@ def _normalize(text: str) -> str:
 
 
 def _extract_years(text: str, y_min: int, y_max: int) -> list[int]:
-    raw = re.findall(r"\b(19[5-9]\d|20[0-2]\d)\b", text)
+    """Год 4 цифры; не только на границе слов — ловим 1992г, в1998 при отсутствии склейки с цифрой."""
+    raw = re.findall(r"(?<!\d)(19[5-9]\d|20[0-2]\d)(?!\d)", text)
     years = [int(x) for x in raw if y_min <= int(x) <= y_max]
     return years
 
@@ -85,6 +160,22 @@ def _candidates_from_hints(norm: str) -> list[str]:
     return found
 
 
+def _ru_place_variants(norm_key: str) -> list[str]:
+    """«Бразилия» ↔ «в Бразилии», «Россия» ↔ «в России» и т.п."""
+    if len(norm_key) < 3:
+        return []
+    out: list[str] = [norm_key]
+    if norm_key.endswith("ия") and len(norm_key) >= 5:
+        stem = norm_key[:-2]
+        out.append(stem + "ии")
+        out.append(norm_key[:-1])
+    dedup: list[str] = []
+    for x in out:
+        if x not in dedup and len(x) >= 3:
+            dedup.append(x)
+    return dedup
+
+
 def _candidates_from_catalog(norm: str, countries: dict[str, dict[str, Any]]) -> list[tuple[str, int]]:
     """Пары (iso, длина совпавшей подстроки)."""
     hits: list[tuple[str, int]] = []
@@ -95,8 +186,11 @@ def _candidates_from_catalog(norm: str, countries: dict[str, dict[str, Any]]) ->
             k = _normalize(key)
             if len(k) < 3:
                 continue
-            if k in norm:
-                hits.append((iso, len(k)))
+            for variant in _ru_place_variants(k):
+                if len(variant) < 3:
+                    continue
+                if variant in norm:
+                    hits.append((iso, len(variant)))
     hits.sort(key=lambda x: -x[1])
     return hits
 
@@ -116,8 +210,12 @@ def parse_birth_description(
             message_ru="Напишите одну-две фразы: страна (как вам удобно) и год рождения, например: «Россия, 1992» или «родился в Польше в 1980».",
         )
 
+    raw_lower = text.lower().replace("ё", "е")
     norm = _normalize(text)
-    years = _extract_years(norm, year_min, year_max)
+
+    years = _extract_years(raw_lower, year_min, year_max)
+    if not years:
+        years = _extract_years(norm, year_min, year_max)
     if not years:
         return ParsedBirthQuery(
             year=None,

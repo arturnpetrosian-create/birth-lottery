@@ -57,18 +57,13 @@ def country_label_compact_flag(iso3: str, name_ru: str) -> str:
 
 
 def country_heading_html(iso3: str, name_ru: str) -> str:
-    """Заголовок с флагом-картинкой для st.markdown(..., unsafe_allow_html=True)."""
-    a2 = iso3166_alpha2(iso3)
+    """Заголовок с флагом: только эмодзи (без CDN — иначе в РФ/при блокировках не грузится)."""
     safe_name = html.escape(name_ru)
-    if a2 is None:
+    e = flag_emoji_alpha3(iso3)
+    if not e:
         return safe_name
-    src = f"https://flagcdn.com/w40/{a2.lower()}.png"
     return (
-        f'<img src="{html.escape(src)}" width="26" height="20" alt="" loading="lazy" '
-        'referrerpolicy="no-referrer-when-downgrade" '
-        'style="vertical-align:-4px;margin-right:8px;border-radius:2px;'
-        'box-shadow:0 0 0 1px rgba(0,0,0,0.07);object-fit:cover;" />'
-        f"{safe_name}"
+        f'<span class="flag-emoji" aria-hidden="true">{e}</span>\u00a0{safe_name}'
     )
 
 

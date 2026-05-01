@@ -16,13 +16,13 @@ def test_iso3166_alpha2_known() -> None:
     assert iso3166_alpha2("USA") == "US"
 
 
-def test_country_heading_html_contains_flagcdn_and_name() -> None:
+def test_country_heading_html_uses_no_external_cdn() -> None:
     from domain.country_flag import country_heading_html
 
     h = country_heading_html("DEU", "Германия")
-    assert "flagcdn.com" in h
-    assert "de.png" in h.lower()
     assert "Германия" in h
+    assert "flagcdn" not in h.lower()
+    assert "http" not in h.lower()
 
 
 def test_country_title_ru_matches_compact_flag() -> None:

@@ -25,11 +25,25 @@ def test_parse_poland_english() -> None:
     assert p.ok and p.iso == "POL" and p.year == 1980
 
 
+def test_parse_brazil_in_brazil_declension() -> None:
+    with DATA_PATH.open(encoding="utf-8") as f:
+        data = json.load(f)
+    p = parse_birth_description("родился в Бразилии в 2001", data["countries"], 1950, 2024)
+    assert p.ok and p.iso == "BRA" and p.year == 2001
+
+
 def test_parse_missing_year() -> None:
     with DATA_PATH.open(encoding="utf-8") as f:
         data = json.load(f)
     p = parse_birth_description("только Турция", data["countries"], 1950, 2024)
     assert not p.ok and p.year is None
+
+
+def test_parse_year_glued_no_space() -> None:
+    with DATA_PATH.open(encoding="utf-8") as f:
+        data = json.load(f)
+    p = parse_birth_description("Россия1992", data["countries"], 1950, 2024)
+    assert p.ok and p.iso == "RUS" and p.year == 1992
 
 
 def test_parse_empty() -> None:

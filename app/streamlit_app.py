@@ -201,10 +201,9 @@ COLOR_STOPS = [
 st.markdown(
     f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-
+    /* Без fonts.googleapis.com — в части сетей РФ/КНР блокируется и вешает страницу */
     html, body, [class*="css"]  {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Liberation Sans", sans-serif;
         color: {PALETTE['ink']};
     }}
 
@@ -226,7 +225,7 @@ st.markdown(
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        font-family: 'IBM Plex Mono', monospace;
+        font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
         font-size: 11px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -237,7 +236,7 @@ st.markdown(
 
     /* ── hero ────────────────────────────────────────────────────────── */
     .hero-eyebrow {{
-        font-family: 'IBM Plex Mono', monospace;
+        font-family: Consolas, ui-monospace, monospace;
         font-size: 11px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
@@ -255,7 +254,7 @@ st.markdown(
         background: {PALETTE['terracotta']};
     }}
     .hero-h1 {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-family: system-ui, sans-serif;
         font-size: clamp(2.1rem, 5.2vw, 4.2rem);
         line-height: 1.05;
         letter-spacing: -0.03em;
@@ -268,6 +267,12 @@ st.markdown(
         font-weight: 600;
         color: {PALETTE['terracotta_d']};
     }}
+    span.flag-emoji {{
+        font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", emoji;
+        font-size: 1.15em;
+        vertical-align: -0.06em;
+        margin-right: 2px;
+    }}
     .hero-sub {{
         font-size: 1.05rem;
         color: {PALETTE['ink_soft']};
@@ -279,7 +284,7 @@ st.markdown(
 
     /* ── NL assist (видимая плашка, без expander) ─────────────────────── */
     .nl-assist-kicker {{
-        font-family: 'IBM Plex Mono', monospace;
+        font-family: Consolas, ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
@@ -287,7 +292,7 @@ st.markdown(
         margin: 0 0 8px 0;
     }}
     .nl-assist-title {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-family: system-ui, sans-serif;
         font-size: 1.08rem;
         font-weight: 600;
         color: {PALETTE['ink']};
@@ -312,7 +317,7 @@ st.markdown(
 
     /* ── eyebrows / section headings ────────────────────────────────── */
     .section-eyebrow {{
-        font-family: 'IBM Plex Mono', monospace;
+        font-family: Consolas, ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
@@ -328,7 +333,7 @@ st.markdown(
         background: {PALETTE['ink_light']};
     }}
     .section-title {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-family: system-ui, sans-serif;
         font-size: 1.75rem;
         line-height: 1.18;
         margin: 0 0 22px 0;
@@ -356,7 +361,7 @@ st.markdown(
         position: relative;
     }}
     .result-label {{
-        font-family: 'IBM Plex Mono', monospace;
+        font-family: Consolas, ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
@@ -364,7 +369,7 @@ st.markdown(
         margin-bottom: 18px;
     }}
     .result-main {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-family: system-ui, sans-serif;
         font-size: clamp(1.2rem, 3.2vw, 1.85rem);
         line-height: 1.35;
         font-weight: 500;
@@ -372,7 +377,7 @@ st.markdown(
         font-variant-numeric: tabular-nums;
     }}
     .result-big {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-family: system-ui, sans-serif;
         font-size: clamp(3rem, 10vw, 6.5rem);
         line-height: 0.95;
         letter-spacing: -0.04em;
@@ -387,7 +392,7 @@ st.markdown(
         vertical-align: 0.05em;
     }}
     .result-secondary {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-family: system-ui, sans-serif;
         font-size: 1.15rem;
         color: {PALETTE['ink_soft']};
         margin-top: 4px;
@@ -400,7 +405,7 @@ st.markdown(
     /* ── контролы (year + country) ──────────────────────────────────── */
     div[data-testid="stSlider"] label,
     div[data-testid="stSelectbox"] label {{
-        font-family: 'IBM Plex Mono', monospace !important;
+        font-family: Consolas, ui-monospace, monospace !important;
         font-size: 10px !important;
         letter-spacing: 0.15em;
         text-transform: uppercase;
@@ -414,7 +419,7 @@ st.markdown(
         border: none !important;
         border-bottom: 2px solid {PALETTE['ink']} !important;
         border-radius: 0 !important;
-        font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
+        font-family: system-ui, sans-serif !important;
         font-size: 1.2rem !important;
         font-weight: 500 !important;
         color: {PALETTE['ink']} !important;
@@ -427,21 +432,21 @@ st.markdown(
         border: 1px solid {PALETTE['ink_light']};
     }}
     div[data-testid="stMetricLabel"] {{
-        font-family: 'IBM Plex Mono', monospace !important;
+        font-family: Consolas, ui-monospace, monospace !important;
         text-transform: uppercase;
         letter-spacing: 0.12em;
         font-size: 10px !important;
         color: {PALETTE['ink_light']} !important;
     }}
     div[data-testid="stMetricValue"] {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
+        font-family: system-ui, sans-serif !important;
         font-size: 1.85rem !important;
         font-weight: 600 !important;
         color: {PALETTE['ink']} !important;
         font-variant-numeric: tabular-nums;
     }}
     div[data-testid="stMetricDelta"] {{
-        font-family: 'IBM Plex Mono', monospace !important;
+        font-family: Consolas, ui-monospace, monospace !important;
         font-size: 11px !important;
         color: {PALETTE['ink_soft']} !important;
     }}
@@ -465,7 +470,7 @@ st.markdown(
         flex-direction: column;
     }}
     .metric-tile-label {{
-        font-family: 'IBM Plex Mono', monospace;
+        font-family: Consolas, ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.12em;
         text-transform: uppercase;
@@ -474,7 +479,7 @@ st.markdown(
         line-height: 1.35;
     }}
     .metric-tile-value {{
-        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-family: system-ui, sans-serif;
         font-size: 1.85rem;
         font-weight: 600;
         color: {PALETTE['ink']};
@@ -507,7 +512,7 @@ st.markdown(
         line-height: 1.65;
     }}
     .footnotes h3 {{
-        font-family: 'IBM Plex Mono', monospace;
+        font-family: Consolas, ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
@@ -729,6 +734,7 @@ with st.container(border=True):
             st.session_state.bl_iso = _p.iso
             st.session_state.nl_ok_hint = _p.message_ru
             st.session_state.nl_err = None
+            st.rerun()
         else:
             st.session_state.nl_ok_hint = None
             st.session_state.nl_err = _p.message_ru
@@ -751,6 +757,7 @@ with col_co:
     iso = st.selectbox(
         "Страна",
         options=ISO_OPTIONS,
+        key="bl_iso",
         format_func=_country_opt,
         help="Границы — как в WPP 2024 (современные государства, ретроспективно).",
     )
@@ -900,11 +907,11 @@ else:
                         "доля в мировом итоге, %"
                         "<br><sup>логарифмическая шкала</sup>"
                     ),
-                    font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_soft"]),
+                    font=dict(family="Consolas", size=10, color=PALETTE["ink_soft"]),
                 ),
                 tickvals=tickvals,
                 ticktext=ticktext,
-                tickfont=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_soft"]),
+                tickfont=dict(family="Consolas", size=10, color=PALETTE["ink_soft"]),
                 thickness=10,
                 len=0.55,
                 outlinewidth=0,
@@ -960,7 +967,7 @@ else:
         plot_bgcolor=PALETTE["paper"],
         margin=dict(l=0, r=0, t=0, b=0),
         height=520,
-        font=dict(family="IBM Plex Sans", color=PALETTE["ink"]),
+        font=dict(family="Segoe UI", color=PALETTE["ink"]),
         dragmode=False,
     )
     st.plotly_chart(
@@ -1044,7 +1051,7 @@ st.plotly_chart(fig_iso, width="stretch", config={"displayModeBar": False})
 # Лёгкая легенда
 st.markdown(
     f"""
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;
+    <div style="font-family:Consolas,monospace;font-size:11px;
         text-transform:uppercase;letter-spacing:0.08em;color:{PALETTE['ink_soft']};
         margin-top:8px;display:flex;gap:24px;flex-wrap:wrap;">
             <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;
@@ -1190,7 +1197,7 @@ fig_bar = go.Figure(
         ),
         text=[f"{p}%" for p in bar_df["pct_lbl"]],
         textposition="outside",
-        textfont=dict(family="IBM Plex Mono", color=PALETTE["ink_soft"], size=11),
+        textfont=dict(family="Consolas", color=PALETTE["ink_soft"], size=11),
         hovertemplate=(
             "<b>%{y}</b><br>"
             "%{customdata[0]}% от мира за год<br>"
@@ -1208,17 +1215,17 @@ fig_bar.update_layout(
     yaxis=dict(
         autorange="reversed",
         automargin=True,
-        tickfont=dict(family="IBM Plex Sans", color=PALETTE["ink"], size=13),
+        tickfont=dict(family="Segoe UI", color=PALETTE["ink"], size=13),
         showgrid=False,
     ),
     xaxis=dict(
         showgrid=True,
         gridcolor=PALETTE["paper_darker"],
-        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
+        tickfont=dict(family="Consolas", color=PALETTE["ink_light"], size=10),
         ticksuffix="%",
         zeroline=False,
     ),
-    font=dict(family="IBM Plex Sans"),
+    font=dict(family="Segoe UI"),
     showlegend=False,
 )
 _xmax_bar = float(bar_df["pct"].max()) if len(bar_df) else 1.0
@@ -1306,7 +1313,7 @@ fig_line.add_trace(
         ),
         text=[f"{year}"],
         textposition="top center",
-        textfont=dict(family="IBM Plex Sans", color=PALETTE["ink"], size=14),
+        textfont=dict(family="Segoe UI", color=PALETTE["ink"], size=14),
         showlegend=False,
         hovertemplate=f"<b>{year}</b><br>{fmt_int(c_births)} живорождений<extra></extra>",
     )
@@ -1318,7 +1325,7 @@ fig_line.update_layout(
     margin=dict(l=56, r=58, t=56, b=34),
     xaxis=dict(
         showgrid=False,
-        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=11),
+        tickfont=dict(family="Consolas", color=PALETTE["ink_light"], size=11),
         showline=True,
         linecolor=PALETTE["ink"],
         linewidth=1,
@@ -1327,10 +1334,10 @@ fig_line.update_layout(
     yaxis=dict(
         showgrid=True,
         gridcolor=PALETTE["paper_darker"],
-        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
+        tickfont=dict(family="Consolas", color=PALETTE["ink_light"], size=10),
         title=dict(
             text="живорождений в год",
-            font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
+            font=dict(family="Consolas", size=10, color=PALETTE["ink_light"]),
         ),
         rangemode="tozero",
         tickformat=",",
@@ -1340,17 +1347,17 @@ fig_line.update_layout(
         side="right",
         showgrid=False,
         rangemode="tozero",
-        tickfont=dict(family="IBM Plex Mono", color=PALETTE["share_line"], size=10),
+        tickfont=dict(family="Consolas", color=PALETTE["share_line"], size=10),
         title=dict(
             text="доля в мире, %",
-            font=dict(family="IBM Plex Mono", size=10, color=PALETTE["share_line"]),
+            font=dict(family="Consolas", size=10, color=PALETTE["share_line"]),
         ),
     ),
     legend=dict(
         orientation="h",
         x=0,
         y=1.12,
-        font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_soft"]),
+        font=dict(family="Consolas", size=10, color=PALETTE["ink_soft"]),
         bgcolor="rgba(0,0,0,0)",
     ),
 )
@@ -1425,7 +1432,7 @@ fig_cmp.update_layout(
     margin=dict(l=56, r=28, t=56, b=34),
     xaxis=dict(
         showgrid=False,
-        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=11),
+        tickfont=dict(family="Consolas", color=PALETTE["ink_light"], size=11),
         showline=True,
         linecolor=PALETTE["ink"],
         linewidth=1,
@@ -1434,10 +1441,10 @@ fig_cmp.update_layout(
     yaxis=dict(
         showgrid=True,
         gridcolor=PALETTE["paper_darker"],
-        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
+        tickfont=dict(family="Consolas", color=PALETTE["ink_light"], size=10),
         title=dict(
             text="живорождений в год",
-            font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
+            font=dict(family="Consolas", size=10, color=PALETTE["ink_light"]),
         ),
         rangemode="tozero",
         tickformat=",",
@@ -1446,7 +1453,7 @@ fig_cmp.update_layout(
         orientation="h",
         x=0,
         y=1.12,
-        font=dict(family="IBM Plex Sans", size=12, color=PALETTE["ink"]),
+        font=dict(family="Segoe UI", size=12, color=PALETTE["ink"]),
         bgcolor="rgba(0,0,0,0)",
     ),
 )
@@ -1610,7 +1617,7 @@ if HISTORICAL is not None:
         margin=dict(l=24, r=24, t=52, b=32),
         xaxis=dict(
             showgrid=False,
-            tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=11),
+            tickfont=dict(family="Consolas", color=PALETTE["ink_light"], size=11),
             showline=True,
             linecolor=PALETTE["ink"],
             linewidth=1,
@@ -1622,10 +1629,10 @@ if HISTORICAL is not None:
             tickmode="array",
             tickvals=_y_ticks.tolist(),
             ticktext=_y_ticktext,
-            tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
+            tickfont=dict(family="Consolas", color=PALETTE["ink_light"], size=10),
             title=dict(
                 text="доля всех живорождений, %",
-                font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
+                font=dict(family="Consolas", size=10, color=PALETTE["ink_light"]),
             ),
             rangemode="tozero",
         ),
@@ -1633,7 +1640,7 @@ if HISTORICAL is not None:
             orientation="h",
             x=0,
             y=1.12,
-            font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_soft"]),
+            font=dict(family="Consolas", size=10, color=PALETTE["ink_soft"]),
             bgcolor="rgba(0,0,0,0)",
         ),
     )
