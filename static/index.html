@@ -6,24 +6,24 @@
 <title>Лотерея рождения · Демографический атлас</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <style>
 :root {
-  --paper: #f4ecd8;
-  --paper-dark: #ebdfc1;
-  --paper-darker: #d9c89e;
-  --ink: #2a1810;
-  --ink-soft: #4a3528;
-  --ink-light: #7a5d48;
-  --terracotta: #b8492f;
-  --terracotta-dark: #8d3220;
-  --ochre: #c89832;
-  --olive: #6b7a3a;
-  --teal: #3a6970;
-  --rule: #2a1810;
-  --water: #e8e0c8;
+  --paper: #f4f4f2;
+  --paper-dark: #e8e8e5;
+  --paper-darker: #d4d4cf;
+  --ink: #1c1c1c;
+  --ink-soft: #5a5a57;
+  --ink-light: #666663;
+  --terracotta: #3d5a6c;
+  --terracotta-dark: #2c4250;
+  --ochre: #6b7d85;
+  --olive: #5a7268;
+  --teal: #4a6670;
+  --rule: #1c1c1c;
+  --water: #e2e4e6;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,14 +31,10 @@
 html, body {
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Fraunces', Georgia, serif;
-  font-feature-settings: "ss01", "onum";
-  line-height: 1.5;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.55;
   min-height: 100vh;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(184, 73, 47, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(107, 122, 58, 0.04) 0%, transparent 40%),
-    repeating-linear-gradient(0deg, rgba(42, 24, 16, 0.013) 0px, rgba(42, 24, 16, 0.013) 1px, transparent 1px, transparent 3px);
 }
 
 .container {
@@ -50,21 +46,21 @@ html, body {
 
 /* ========== MASTHEAD ========== */
 .masthead {
-  border-top: 4px double var(--rule);
+  border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
   padding: 14px 0;
-  margin-bottom: 60px;
+  margin-bottom: 48px;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-soft);
 }
-.masthead-left { font-weight: 700; }
-.masthead-right { font-style: italic; text-transform: none; letter-spacing: 0.05em; }
+.masthead-left { font-weight: 600; }
+.masthead-right { font-style: normal; text-transform: none; letter-spacing: 0.04em; }
 @media (max-width: 600px) { .masthead { flex-direction: column; gap: 4px; font-size: 10px; } }
 
 /* ========== HERO ========== */
@@ -72,9 +68,9 @@ html, body {
   margin-bottom: 64px;
 }
 .hero-eyebrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  letter-spacing: 0.2em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--terracotta);
   margin-bottom: 22px;
@@ -90,53 +86,42 @@ html, body {
   background: var(--terracotta);
 }
 .hero h1 {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 0, 'WONK' 1;
-  font-size: clamp(2.6rem, 6.5vw, 5.2rem);
-  line-height: 0.98;
-  letter-spacing: -0.025em;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: clamp(2.1rem, 6vw, 4.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   margin-bottom: 22px;
-  font-weight: 400;
+  font-weight: 500;
 }
 .hero h1 em {
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
   color: var(--terracotta-dark);
-  font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 100, 'WONK' 1;
 }
 .hero-sub {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--ink-soft);
-  max-width: 600px;
-  font-style: italic;
-  line-height: 1.55;
+  max-width: 640px;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 /* ========== CONTROLS ========== */
 .controls {
   background: var(--paper-dark);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--ink-light);
   padding: 28px 32px;
   margin-bottom: 56px;
-  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 28px;
-  z-index: 2;
 }
-.controls::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border: 1px solid var(--ink);
-  pointer-events: none;
-  transform: translate(6px, 6px);
-  z-index: -1;
-}
+.controls::before { display: none; }
 @media (max-width: 700px) { .controls { grid-template-columns: 1fr; padding: 20px; } }
 
 .control-group label {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -150,7 +135,7 @@ html, body {
   border: none;
   border-bottom: 2px solid var(--ink);
   padding: 6px 0;
-  font-family: 'Fraunces', serif;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
   font-size: 1.5rem;
   font-weight: 500;
   color: var(--ink);
@@ -201,22 +186,12 @@ html, body {
   text-align: center;
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
-  padding: 56px 20px 64px;
+  padding: 48px 20px 56px;
   position: relative;
 }
-.result-block::before, .result-block::after {
-  content: "❦";
-  position: absolute;
-  font-size: 18px;
-  color: var(--terracotta);
-  background: var(--paper);
-  padding: 0 14px;
-}
-.result-block::before { top: -10px; left: 50%; transform: translateX(-50%); }
-.result-block::after { bottom: -12px; left: 50%; transform: translateX(-50%); }
 
 .result-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -224,9 +199,9 @@ html, body {
   margin-bottom: 24px;
 }
 .result-big {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 144, 'wght' 300, 'WONK' 1;
-  font-size: clamp(3.6rem, 12vw, 8rem);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: clamp(3.2rem, 12vw, 7rem);
   line-height: 0.95;
   letter-spacing: -0.04em;
   margin-bottom: 8px;
@@ -234,14 +209,13 @@ html, body {
 }
 .result-big .pct-sign {
   color: var(--terracotta);
-  font-style: italic;
+  font-weight: 500;
   font-size: 0.7em;
   vertical-align: 0.05em;
 }
 .result-secondary {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-size: 1.3rem;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.15rem;
   color: var(--ink-soft);
   margin-top: 4px;
 }
@@ -253,7 +227,7 @@ html, body {
 
 /* ========== SECTION HEADINGS ========== */
 .section-heading {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -269,23 +243,61 @@ html, body {
   background: var(--ink-light);
 }
 .section-title {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 60, 'wght' 500, 'WONK' 1;
-  font-size: 1.9rem;
-  line-height: 1.1;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.15;
   margin-bottom: 28px;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
-.section-title em { font-style: italic; color: var(--terracotta-dark); }
+.section-title em { font-style: normal; font-weight: 600; color: var(--terracotta-dark); }
 
 .section { margin-bottom: 80px; }
+
+.prb-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 28px 0 16px;
+}
+@media (max-width: 800px) { .prb-grid { grid-template-columns: 1fr; } }
+.prb-cell {
+  background: var(--paper-dark);
+  border: 1px solid var(--ink-light);
+  padding: 18px 20px;
+  font-size: 0.95rem;
+}
+.prb-cell strong {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.prb-main-stat {
+  font-size: 1.35rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  margin: 8px 0 4px;
+}
+.prb-foot {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  margin-top: 20px;
+  max-width: 720px;
+}
 
 .caption {
   font-size: 0.95rem;
   color: var(--ink-soft);
-  font-style: italic;
+  font-weight: 400;
   margin-bottom: 24px;
-  max-width: 620px;
+  max-width: 640px;
+  line-height: 1.55;
 }
 
 /* ========== MAP ========== */
@@ -323,7 +335,7 @@ html, body {
   background: var(--ink);
   color: var(--paper);
   padding: 8px 12px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   pointer-events: none;
   opacity: 0;
@@ -332,7 +344,7 @@ html, body {
   white-space: nowrap;
 }
 .tooltip strong {
-  font-family: 'Fraunces', serif;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   display: block;
@@ -346,7 +358,7 @@ html, body {
   align-items: center;
   gap: 16px;
   margin-top: 14px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -357,7 +369,7 @@ html, body {
   height: 12px;
   flex: 1;
   min-width: 200px;
-  background: linear-gradient(90deg, #f4ecd8, #e8b89c, #d97a5a, #b8492f, #6e1f10);
+  background: linear-gradient(90deg, #f4f4f2, #c5d0d6, #89a7b5, #3d5a6c, #1e2f3a);
   border: 1px solid var(--ink);
 }
 
@@ -385,7 +397,7 @@ html, body {
 .isotype-legend {
   display: flex;
   gap: 24px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -416,7 +428,7 @@ html, body {
   padding: 28px 26px;
 }
 .context-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -424,8 +436,8 @@ html, body {
   margin-bottom: 12px;
 }
 .context-value {
-  font-family: 'Fraunces', serif;
-  font-variation-settings: 'opsz' 60, 'wght' 500, 'WONK' 1;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-weight: 600;
   font-size: 2.1rem;
   line-height: 1;
   margin-bottom: 6px;
@@ -434,14 +446,13 @@ html, body {
 .context-value .unit {
   font-size: 0.5em;
   color: var(--ink-light);
-  font-style: italic;
-  font-variation-settings: 'wght' 400;
+  font-weight: 400;
   margin-left: 4px;
 }
 .context-note {
   font-size: 0.85rem;
   color: var(--ink-soft);
-  font-style: italic;
+  font-weight: 400;
 }
 
 /* ========== RANKING ========== */
@@ -458,18 +469,18 @@ html, body {
   transition: background 0.2s;
 }
 .rank-row.highlight {
-  background: linear-gradient(90deg, rgba(184, 73, 47, 0.12), transparent);
+  background: linear-gradient(90deg, rgba(61, 90, 108, 0.14), transparent);
   padding-left: 12px;
   margin-left: -12px;
 }
 .rank-num {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
   color: var(--ink-light);
   font-variant-numeric: tabular-nums;
 }
 .rank-name {
-  font-family: 'Fraunces', serif;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
   font-size: 1.05rem;
   font-weight: 500;
 }
@@ -478,7 +489,7 @@ html, body {
   font-weight: 600;
 }
 .rank-pct {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: var(--ink-soft);
@@ -512,7 +523,7 @@ html, body {
 .timeline-axis {
   display: flex;
   justify-content: space-between;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 10px;
   color: var(--ink-light);
   letter-spacing: 0.1em;
@@ -522,22 +533,21 @@ html, body {
 
 /* ========== FOOTER ========== */
 .footnotes {
-  border-top: 4px double var(--rule);
+  border-top: 1px solid var(--rule);
   padding-top: 32px;
   margin-top: 80px;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   color: var(--ink-soft);
-  font-style: italic;
+  font-weight: 400;
   line-height: 1.65;
 }
 .footnotes h3 {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--terracotta);
   margin-bottom: 12px;
-  font-style: normal;
 }
 .footnotes p { margin-bottom: 12px; }
 .footnotes strong { color: var(--ink); font-weight: 600; }
@@ -546,7 +556,7 @@ html, body {
 .map-loading {
   text-align: center;
   padding: 60px 20px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -567,19 +577,19 @@ html, body {
 <div class="container">
 
 <header class="masthead">
-  <div class="masthead-left">Демографический Атлас № 1 ※ Выпуск 2026</div>
-  <div class="masthead-right">по данным United Nations · World Population Prospects 2024</div>
+  <div class="masthead-left">Демографический атлас · 2026</div>
+  <div class="masthead-right">United Nations · World Population Prospects 2024</div>
 </header>
 
 <section class="hero">
-  <div class="hero-eyebrow">Когортные вероятности рождения</div>
-  <h1>Какова была вероятность<br><em>родиться</em> именно здесь<br>именно тогда?</h1>
-  <p class="hero-sub">Каждый год Земля принимает около 130&nbsp;миллионов живорождений. Этот атлас раскладывает мировую когорту новорождённых на страны и годы и показывает удельный вес каждой ячейки — априорную вероятность того, что случайно выбранный младенец родился именно в&nbsp;этой стране в&nbsp;этом году.</p>
+  <div class="hero-eyebrow">Условные вероятности по стране и году</div>
+  <h1>Насколько вероятно было<br><em>родиться здесь</em><br>в выбранный год?</h1>
+  <p class="hero-sub">Число мировых живорождений по годам сильно меняется: в окне 1950–2024 примерно от ~92 до ~143&nbsp;млн в год (в 2020-е — порядка 130&nbsp;млн). Для выбранного года и страны показана <strong>доля её живорождений в суммарном мировом объёме за тот же год</strong>. Метафора «лотерея» — образ: имеется в виду <strong>мысленный эксперимент</strong> равновероятного выбора среди всех новорождённых мира в этом календарном году, а не «шанс родиться» у уже живущего человека; тогда доля совпадает с <em>P</em>(страна&nbsp;|&nbsp;год). Раздел §&nbsp;VI ниже — отдельная шкала по оценке PRB (~117&nbsp;млрд рождений).</p>
 </section>
 
 <section class="controls">
   <div class="control-group">
-    <label>Год рождения · календарная когорта</label>
+    <label>Год рождения</label>
     <input type="number" id="yearInput" min="1950" max="2024" value="1992" step="1">
     <div class="year-slider-wrap">
       <input type="range" class="year-slider" id="yearSlider" min="1950" max="2024" value="1992" step="1">
@@ -592,15 +602,15 @@ html, body {
 </section>
 
 <section class="result-block">
-  <div class="result-label">Доля в мировой когорте новорождённых</div>
+  <div class="result-label">Доля страны в мировых живорождениях года</div>
   <div class="result-big" id="bigPct">—</div>
   <div class="result-secondary" id="oneInX">—</div>
 </section>
 
 <section class="map-section section">
-  <div class="section-heading">§ I · Пространственное распределение когорты</div>
-  <h2 class="section-title">Где рождались люди в <em><span id="mapYearLabel">1992</span></em> году</h2>
-  <p class="caption">Цвет показывает удельный вес страны в мировой когорте живорождений по логарифмической шкале. Темнее — выше доля. Кликните страну, чтобы выбрать её. Бледный фон — страны с малым числом рождений (&lt;&nbsp;0.01%) или отсутствующие в датасете.</p>
+  <div class="section-heading">01 · Карта</div>
+  <h2 class="section-title">Распределение живорождений по странам в <em><span id="mapYearLabel">1992</span></em> году</h2>
+  <p class="caption">Насыщенность цвета — доля страны в сумме живорождений по миру за этот год (логарифмическая шкала). Светлые области — очень малые доли или нет данных.</p>
   <div class="map-wrap">
     <div id="mapLoading" class="map-loading">Загружаю карту мира</div>
     <svg id="worldMap" viewBox="0 0 960 500" preserveAspectRatio="xMidYMid meet" style="display:none"></svg>
@@ -614,9 +624,9 @@ html, body {
 </section>
 
 <section class="section">
-  <div class="section-heading">§ II · Изотип когорты</div>
-  <h2 class="section-title">Из <em>1000</em> младенцев мира того года —<br>столько родились здесь</h2>
-  <p class="caption" id="isotypeCaption">Каждая точка соответствует одному младенцу из тысячи случайно выбранных по миру в выбранный год.</p>
+  <div class="section-heading">02 · Изотип</div>
+  <h2 class="section-title">Из тысячи условно случайных новорождённых мира —<br><em>сколько</em> из них здесь</h2>
+  <p class="caption" id="isotypeCaption">Каждая ячейка — один из тысячи равновероятно выбранных новорождённых мира за выбранный год.</p>
   <div id="isotypeGrid"></div>
   <div class="isotype-legend">
     <span><span class="legend-dot" style="background:var(--terracotta);border-color:var(--terracotta-dark)"></span><span id="legendCountry">страна</span></span>
@@ -625,7 +635,7 @@ html, body {
 </section>
 
 <section class="section">
-  <div class="section-heading">§ III · Демографический контекст</div>
+  <div class="section-heading">03 · Контекст</div>
   <h2 class="section-title">Что означают эти числа</h2>
   <div class="context-grid">
     <div class="context-cell">
@@ -647,14 +657,14 @@ html, body {
 </section>
 
 <section class="section">
-  <div class="section-heading">§ IV · Структура мировой когорты</div>
-  <h2 class="section-title">Где рождалось <em>больше всего</em> людей<br>в выбранный год</h2>
+  <div class="section-heading">04 · Рейтинг</div>
+  <h2 class="section-title">Страны с наибольшим числом живорождений в выбранный год</h2>
   <div class="ranking-list" id="rankingList"></div>
 </section>
 
 <section class="section">
-  <div class="section-heading">§ V · Когортная динамика</div>
-  <h2 class="section-title">Кривая живорождений в стране,<br>от <em>1950</em> до <em>2024</em></h2>
+  <div class="section-heading">05 · Динамика</div>
+  <h2 class="section-title">Число живорождений в стране,<br><em>1950</em>—<em>2024</em></h2>
   <p class="caption" id="timelineCaption">Линия показывает абсолютное число живорождений в год. В развитых экономиках видны послевоенные демографические волны; в развивающихся — поздний демографический переход с пиком в 1980–2000-х. Точка — выбранный вами год.</p>
   <svg id="timelineChart" viewBox="0 0 1000 280" preserveAspectRatio="none"></svg>
   <div class="timeline-axis">
@@ -662,15 +672,43 @@ html, body {
   </div>
 </section>
 
+<section class="section" id="section-prb">
+  <div class="section-heading">§ VI · Среди всех, кто когда-либо рождался</div>
+  <h2 class="section-title">Оценка PRB: с появления <em>Homo sapiens</em> родилось порядка 117&nbsp;млрд человек</h2>
+  <p class="caption">
+    <a href="https://www.prb.org/articles/how-many-people-have-ever-lived-on-earth/" target="_blank" rel="noopener noreferrer">Toshiko Kaneda &amp; Carl Haub (Population Reference Bureau, 2022)</a>:
+    совокупное число <strong>рождений</strong> в модели от ~190&nbsp;000 г. до н.э. до середины 2022&nbsp;г.
+    — не «все одновременно жившие». У оценки широкая неопределённость (PRB: порядка ±20–30&nbsp;%).
+  </p>
+  <div class="result-block" style="margin-bottom: 32px;">
+    <div class="result-label">Календарная пара страна + год на фоне ~117 млрд (PRB)</div>
+    <div class="result-secondary" id="prbOneLine" style="font-size:1.35rem;color:var(--ink);">—</div>
+    <div class="result-secondary" id="prbPctLine" style="margin-top:8px;">—</div>
+  </div>
+  <div class="prb-grid">
+    <div class="prb-cell"><strong>Рождения в стране в выбранный год</strong><span id="prbCell1">—</span></div>
+    <div class="prb-cell"><strong>Сумма рождений в стране, 1950–2024 (WPP)</strong><span id="prbCell2">—</span></div>
+    <div class="prb-cell"><strong>Ныне живущие (оценка WPP 2024)</strong><span id="prbCell3">—</span></div>
+  </div>
+  <p class="prb-foot">
+    Пул 1950–2024 в этом приложении: ≈ <span id="prbPoolUn">—</span>% от 117 млрд. Выбранный <strong>мировой</strong> год: ≈ <span id="prbPoolYear">—</span>% от 117 млрд.
+    <br><br>
+    <strong>Источник 117 млрд:</strong> Kaneda &amp; Haub, «How Many People Have Ever Lived on Earth?», PRB, 2022.
+    Численность «сейчас» в ячейке справа — из поля <code>world_population_july_2024_thousands</code> в JSON, если оно есть после пересборки xlsx; иначе ориентир ~8,12&nbsp;млрд для иллюстрации доли.
+  </p>
+</section>
+
 <footer class="footnotes">
-  <h3>Источники и методология</h3>
-  <p><strong>Источник.</strong> United Nations, Department of Economic and Social Affairs, Population Division (2024). <em>World Population Prospects 2024.</em> Лицензия CC&nbsp;BY&nbsp;3.0&nbsp;IGO. Используется показатель <em>Births&nbsp;(thousands)</em> — оценочное число живорождений в год по каждой стране (Estimates 1950–2023 + Medium variant 2024).</p>
-  <p><strong>Метод.</strong> Когортная вероятность места рождения вычисляется как <em>P(C&nbsp;|&nbsp;Y)&nbsp;=&nbsp;births(C,&nbsp;Y)&nbsp;÷&nbsp;world_births(Y)</em>: доля живорождений в стране&nbsp;C среди всех живорождений мира за год&nbsp;Y. Это априорная вероятность того, что случайно выбранный младенец из глобальной когорты родился именно в&nbsp;C.</p>
-  <p><strong>Границы — современные.</strong> ООН в WPP&nbsp;2024 ретроспективно применяет современные (на 2024) границы стран: «Россия в 1950» = территория современной РФ (РСФСР), не СССР; «Бангладеш в 1960» — территория современной Бангладеш (Восточный Пакистан); «Германия» — объединённая территория ФРГ&nbsp;+&nbsp;ГДР. Это стандартная практика для длинных временных рядов в&nbsp;демографии.</p>
-  <p><strong>Точность.</strong> Оценки ООН строятся методами cohort-component projection с байесовским сглаживанием на базе vital&nbsp;registration, переписей и DHS/MICS. Развитые страны: ±1–2%; большинство развивающихся: ±5–10%; страны затяжного кризиса (Афганистан, Сомали, ДРК): ±15–20%.</p>
-  <p><strong>Что НЕ учтено.</strong> Младенческая и детская смертность (U5MR), миграция в первые годы жизни, изменение государственных границ. Это чистая «лотерея места рождения» на момент живорождения, без поправки на дальнейшую выживаемость.</p>
-  <p><strong>Покрытие.</strong> 211&nbsp;стран и территорий, 75&nbsp;лет (1950–2024), ≈&nbsp;15&nbsp;800 country-year-наблюдений. Малые территории с пиковыми &lt;&nbsp;1&nbsp;000 живорождений в год (Ватикан, Токелау, Питкэрн) исключены как статистически шумные.</p>
-  <p><strong>Карта.</strong> Natural Earth (110m, упрощённые границы) через d3-geo&nbsp;+&nbsp;topojson; проекция Equal&nbsp;Earth.</p>
+  <h3>Источники и краткая методология</h3>
+  <p><strong>Данные.</strong> United Nations, Department of Economic and Social Affairs, Population Division (2024). <em>World Population Prospects 2024.</em> Лицензия CC&nbsp;BY&nbsp;3.0&nbsp;IGO. Показатель <em>Births (thousands)</em> — оценка числа живорождений за год по стране (Estimates 1950–2023 + medium 2024).</p>
+  <p><strong>§&nbsp;VI (PRB).</strong> Блок выше с ~117&nbsp;млрд опирается на Kaneda &amp; Haub, «How Many People Have Ever Lived on Earth?», <a href="https://www.prb.org/articles/how-many-people-have-ever-lived-on-earth/" rel="noopener">Population Reference Bureau, 2022</a>; методика и ограничения — в <em>docs/METHODOLOGY.md</em>, §&nbsp;8.</p>
+  <p><strong>Что считается.</strong> Доля <em>births(страна,&nbsp;год) / births(мир,&nbsp;год)</em> — условная вероятность страны при фиксированном календарном годе в мысленном эксперименте равновероятного выбора среди всех новорождённых планеты в этот год. Это <em>не</em> «вероятность родиться в таком-то году» относительно всех когда-либо живших; для последнего нужны суммарные оценки рождений по истории (в литературе часто приводят порядок 100–120&nbsp;млрд человек за всё время, точная величина зависит от методики).</p>
+  <p><strong>Границы.</strong> В WPP применяют современные границы задним числом: «Россия в 1950» — нынешняя РФ в границах того времени (≈&nbsp;РСФСР); «Бангладеш в 1960» — нынешняя Бангладеш; Германия — объединение ФРГ и ГДР в одной оценке.</p>
+  <p><strong>Качество.</strong> ООН сшивает регистрацию актов, переписи и обследования; используются сглаженные модели (в т.&nbsp;ч. когортно‑компонентного типа). Ориентир по погрешности: развитые страны с полной регистрацией ≈&nbsp;±1–2&nbsp;%, большинство остальных ≈&nbsp;±5–10&nbsp;%, зоны кризисов до ≈&nbsp;±15–20&nbsp;%.</p>
+  <p><strong>Не учтено.</strong> Младенческая и детская смертность, миграция младенцев, смена гражданства — показатель про место и момент рождения.</p>
+  <p><strong>Покрытие.</strong> 211 территорий, 1950–2024, ≈&nbsp;15&nbsp;800 наблюдений «страна‑год»; мелкие сущности с &lt;&nbsp;1000 живорождений в год отфильтрованы.</p>
+  <p><strong>Ретроспектива до 1950.</strong> В WPP нет единой глобальной сетки раньше 1950; возможны комбинации исторических рядов численности, региональных оценок рождаемости, <em>Human Fertility Database</em> для подмножества стран и национальных реконструкций — с существенно большей неопределённостью.</p>
+  <p><strong>Карта.</strong> Natural Earth 110m, d3-geo + topojson, проекция Equal Earth.</p>
 </footer>
 
 </div>
@@ -683,6 +721,21 @@ const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('ru-RU').replace(/,/g, ' ');
 const YEAR_MIN = DATA.metadata.year_start;
 const YEAR_MAX = DATA.metadata.year_end;
+const EVER_LIVED_PRB_2022 = 117e9;
+const PRB_FALLBACK_POP_THOUSANDS = 8120000;
+function prbTinyPct(share) {
+  const p = share * 100;
+  if (p >= 0.01) return p.toFixed(6);
+  if (p >= 0.001) return p.toFixed(7);
+  return p.toFixed(8);
+}
+function prbHumanOneIn(recip) {
+  if (!isFinite(recip) || recip <= 0) return '—';
+  if (recip < 1000) return '≈ 1 из ' + fmt(recip);
+  if (recip < 1e6) return '≈ 1 из ' + fmt(recip);
+  if (recip < 1e9) return '≈ 1 из ' + (recip / 1e6).toFixed(2).replace('.', ',') + ' млн';
+  return '≈ 1 из ' + (recip / 1e9).toFixed(2).replace('.', ',') + ' млрд';
+}
 
 function birthsForCountry(iso, year) {
   const c = DATA.countries[iso];
@@ -720,18 +773,18 @@ for (let i = 0; i < 1000; i++) {
 }
 
 // ========== COLOR SCALE FOR MAP ==========
-// Log scale: 0.01% → 20%+ mapped to 5 paper-bg → terracotta steps
+// Log scale: низкие доли → высокие (логарифмическая шкала цвета)
 const colorStops = [
-  [0,      '#f4ecd8'],  // very low
-  [0.05,   '#ecdcb8'],
-  [0.2,    '#e8b89c'],
-  [1,      '#d97a5a'],
-  [5,      '#b8492f'],
-  [15,     '#8d3220'],
-  [25,     '#6e1f10']
+  [0,      '#f4f4f2'],
+  [0.05,   '#e4e8ea'],
+  [0.2,    '#c5d0d6'],
+  [1,      '#89a7b5'],
+  [5,      '#3d5a6c'],
+  [15,     '#2c4250'],
+  [25,     '#1e2f3a']
 ];
 function colorForPct(pct) {
-  if (pct < 0.005) return '#e8e0c8'; // very faint - basically water tone
+  if (pct < 0.005) return '#e2e4e6';
   // log-ish interpolation
   for (let i = 0; i < colorStops.length - 1; i++) {
     const [v0, c0] = colorStops[i], [v1, c1] = colorStops[i + 1];
@@ -886,15 +939,13 @@ function update() {
   // Isotype
   const dotsToFill = Math.round(pct * 10);
   const allDots = grid.querySelectorAll('.dot');
-  allDots.forEach((d, i) => {
-    setTimeout(() => d.classList.toggle('filled', i < dotsToFill), Math.min(i, 200) * 0.6);
-  });
+  allDots.forEach((d, i) => { d.classList.toggle('filled', i < dotsToFill); });
   if (dotsToFill === 0) {
-    $('isotypeCaption').textContent = `Меньше одного младенца из тысячи — точнее, ${fmt(pct * 1000)} из 100 000 новорождённых мира.`;
+    $('isotypeCaption').textContent = `Меньше одного на тысячу: примерно ${fmt(pct * 1000)} из 100 000 новорождённых мира.`;
   } else if (dotsToFill > 800) {
-    $('isotypeCaption').textContent = `${dotsToFill} из 1000 младенцев мира в ${year} году родились в этой стране — это была демографическая сверхдержава.`;
+    $('isotypeCaption').textContent = `${dotsToFill} из 1000 отобранных новорождённых того года приходятся на эту страну — очень высокая доля в мировом объёме.`;
   } else {
-    $('isotypeCaption').textContent = `Каждая точка = один младенец из тысячи случайно выбранных по всему миру в ${year} году. Закрашены родившиеся в стране.`;
+    $('isotypeCaption').textContent = `Каждая точка — один из тысячи равновероятно выбранных новорождённых планеты в ${year} году. Закрашены рождения в выбранной стране.`;
   }
   $('legendCountry').textContent = country.r;
 
@@ -920,6 +971,30 @@ function update() {
   else if (rank <= ranking.length / 2) rankDesc = 'выше медианы';
   else rankDesc = 'ниже медианы';
   $('ctxRankNote').textContent = rankDesc;
+
+  const popK = DATA.metadata.world_population_july_2024_thousands != null
+    ? DATA.metadata.world_population_july_2024_thousands
+    : PRB_FALLBACK_POP_THOUSANDS;
+  const alive = popK * 1000;
+  const aliveShare = alive / EVER_LIVED_PRB_2022;
+  let sumWorld = DATA.metadata.world_births_sum_1950_2024_persons;
+  if (sumWorld == null) {
+    sumWorld = DATA.metadata.world.reduce((a, b) => a + b, 0) * 1000;
+  }
+  const shareUn = sumWorld / EVER_LIVED_PRB_2022;
+  const shareYrWorld = wBirths / EVER_LIVED_PRB_2022;
+  let sumC = 0;
+  for (let i = 0; i < country.b.length; i++) sumC += country.b[i];
+  sumC *= 1000;
+  const pYou = cBirths / EVER_LIVED_PRB_2022;
+  const oneInPrb = 1 / pYou;
+  $('prbOneLine').textContent = prbHumanOneIn(oneInPrb);
+  $('prbPctLine').textContent = '≈ ' + prbTinyPct(pYou) + ' % от оценки PRB (117 млрд рождений)';
+  $('prbCell1').textContent = ' ' + prbTinyPct(pYou) + ' %';
+  $('prbCell2').textContent = ' ' + prbTinyPct(sumC / EVER_LIVED_PRB_2022) + ' %';
+  $('prbCell3').textContent = ' ' + prbTinyPct(aliveShare) + ' % (~' + (alive / 1e9).toFixed(2).replace('.', ',') + ' млрд чел.)';
+  $('prbPoolUn').textContent = (shareUn * 100).toFixed(1);
+  $('prbPoolYear').textContent = (shareYrWorld * 100).toFixed(3);
 
   // Top-12 + user's row
   const topN = ranking.slice(0, 12);
@@ -974,9 +1049,9 @@ function drawTimeline(iso, selectedYear) {
 
   // Y labels
   svg.appendChild(mk('text', { x: padL - 8, y: padT + 4, 'text-anchor': 'end',
-    'font-family': 'JetBrains Mono', 'font-size': 10, fill: '#7a5d48' }, fmt(maxV / 1000) + 'k'));
+    'font-family': 'IBM Plex Mono', 'font-size': 10, fill: '#8c8c88' }, fmt(maxV / 1000) + 'k'));
   svg.appendChild(mk('text', { x: padL - 8, y: padT + innerH / 2 + 4, 'text-anchor': 'end',
-    'font-family': 'JetBrains Mono', 'font-size': 10, fill: '#7a5d48' }, fmt(maxV / 2000) + 'k'));
+    'font-family': 'IBM Plex Mono', 'font-size': 10, fill: '#8c8c88' }, fmt(maxV / 2000) + 'k'));
 
   // Baseline
   svg.appendChild(mk('line', { x1: padL, y1: padT + innerH, x2: W - padR, y2: padT + innerH,
@@ -988,7 +1063,7 @@ function drawTimeline(iso, selectedYear) {
   let pathArea = `M ${x(YEAR_MIN)} ${padT + innerH}`;
   for (let i = 0; i < yrs.length; i++) pathArea += ` L ${x(yrs[i])} ${yc(vals[i])}`;
   pathArea += ` L ${x(YEAR_MAX)} ${padT + innerH} Z`;
-  svg.appendChild(mk('path', { d: pathArea, fill: '#b8492f', opacity: 0.18 }));
+  svg.appendChild(mk('path', { d: pathArea, fill: '#3d5a6c', opacity: 0.18 }));
 
   // Line
   let pathLine = `M ${x(yrs[0])} ${yc(vals[0])}`;
@@ -1001,14 +1076,14 @@ function drawTimeline(iso, selectedYear) {
   const cx = x(selectedYear), cy = yc(vals[idx]);
   svg.appendChild(mk('line', { x1: cx, y1: padT, x2: cx, y2: padT + innerH,
     stroke: '#2a1810', 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.5 }));
-  svg.appendChild(mk('circle', { cx, cy, r: 10, fill: '#f4ecd8',
+  svg.appendChild(mk('circle', { cx, cy, r: 10, fill: '#f4f4f2',
     stroke: '#8d3220', 'stroke-width': 2 }));
   svg.appendChild(mk('circle', { cx, cy, r: 4, fill: '#8d3220' }));
   svg.appendChild(mk('text', { x: cx, y: cy - 18, 'text-anchor': 'middle',
-    'font-family': 'Fraunces', 'font-size': 13, 'font-style': 'italic',
+    'font-family': 'IBM Plex Sans', 'font-size': 13, 'font-weight': '600',
     'font-weight': 500, fill: '#2a1810' }, selectedYear));
   
-  const valLabel = mk('text', { y: cy + 4, 'font-family': 'JetBrains Mono',
+  const valLabel = mk('text', { y: cy + 4, 'font-family': 'IBM Plex Mono',
     'font-size': 11, fill: '#8d3220' }, fmt(vals[idx] / 1000) + 'k');
   if (cx > W - 100) {
     valLabel.setAttribute('x', cx - 14);

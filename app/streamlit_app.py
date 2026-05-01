@@ -1,7 +1,7 @@
 """
 streamlit_app.py
 ────────────────
-«Лотерея рождения» — демографический атлас когорт живорождений по странам,
+«Лотерея рождения» — атлас долей живорождений по странам и годам,
 1950–2024.
 
 Источник:
@@ -22,6 +22,15 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+
+from domain.prb_ever_lived import (
+    EVER_LIVED_PRB_2022,
+    PRB_ARTICLE_URL,
+    format_tiny_percent,
+    humanize_one_in,
+    one_in_reciprocal,
+    share_of_prb_total,
+)
 import plotly.graph_objects as go
 import streamlit as st
 
@@ -35,8 +44,8 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
     menu_items={
         "About": (
-            "Демографический атлас когортных вероятностей рождения "
-            "по данным UN World Population Prospects 2024."
+            "Атлас долей живорождений по странам по данным "
+            "UN World Population Prospects 2024."
         ),
     },
 )
@@ -45,26 +54,26 @@ st.set_page_config(
 # Палитра и типографика — синхронизированы со static/index.html
 # ============================================================================
 PALETTE = {
-    "paper":        "#f4ecd8",
-    "paper_dark":   "#ebdfc1",
-    "paper_darker": "#d9c89e",
-    "ink":          "#2a1810",
-    "ink_soft":     "#4a3528",
-    "ink_light":    "#7a5d48",
-    "terracotta":   "#b8492f",
-    "terracotta_d": "#8d3220",
-    "terracotta_dd":"#6e1f10",
-    "ochre":        "#c89832",
-    "olive":        "#6b7a3a",
-    "water":        "#e8e0c8",
+    "paper":        "#f4f4f2",
+    "paper_dark":   "#e8e8e5",
+    "paper_darker": "#d4d4cf",
+    "ink":          "#1c1c1c",
+    "ink_soft":     "#5a5a57",
+    "ink_light":    "#666663",
+    "terracotta":   "#3d5a6c",
+    "terracotta_d": "#2c4250",
+    "terracotta_dd": "#1e2f3a",
+    "ochre":        "#6b7d85",
+    "olive":        "#5a7268",
+    "water":        "#e2e4e6",
 }
 
-# Логарифмическая шкала «доли в мировой когорте новорождённых»
+# Логарифмическая шкала доли страны в мировом объёме живорождений года
 COLOR_STOPS = [
     (0.0,   PALETTE["paper"]),
-    (0.05,  "#ecdcb8"),
-    (0.20,  "#e8b89c"),
-    (1.0,   "#d97a5a"),
+    (0.05,  "#e4e8ea"),
+    (0.20,  "#c5d0d6"),
+    (1.0,   "#89a7b5"),
     (5.0,   PALETTE["terracotta"]),
     (15.0,  PALETTE["terracotta_d"]),
     (25.0,  PALETTE["terracotta_dd"]),
@@ -73,20 +82,15 @@ COLOR_STOPS = [
 st.markdown(
     f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 
     html, body, [class*="css"]  {{
-        font-family: 'Fraunces', Georgia, serif;
-        font-feature-settings: "ss01", "onum";
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
         color: {PALETTE['ink']};
     }}
 
     .stApp {{
         background: {PALETTE['paper']};
-        background-image:
-            radial-gradient(circle at 20% 30%, rgba(184,73,47,0.04) 0%, transparent 40%),
-            radial-gradient(circle at 80% 70%, rgba(107,122,58,0.04) 0%, transparent 40%),
-            repeating-linear-gradient(0deg, rgba(42,24,16,0.013) 0px, rgba(42,24,16,0.013) 1px, transparent 1px, transparent 3px);
     }}
     .block-container {{
         max-width: 1180px !important;
@@ -96,27 +100,27 @@ st.markdown(
 
     /* ── masthead ────────────────────────────────────────────────────── */
     .masthead {{
-        border-top: 4px double {PALETTE['ink']};
+        border-top: 1px solid {PALETTE['ink']};
         border-bottom: 1px solid {PALETTE['ink']};
         padding: 14px 0;
-        margin-bottom: 56px;
+        margin-bottom: 48px;
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: 'IBM Plex Mono', monospace;
         font-size: 11px;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: {PALETTE['ink_soft']};
     }}
-    .masthead-left {{ font-weight: 700; }}
-    .masthead-right {{ font-style: italic; text-transform: none; letter-spacing: 0.05em; }}
+    .masthead-left {{ font-weight: 600; }}
+    .masthead-right {{ font-style: normal; text-transform: none; letter-spacing: 0.04em; }}
 
     /* ── hero ────────────────────────────────────────────────────────── */
     .hero-eyebrow {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 12px;
-        letter-spacing: 0.2em;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         color: {PALETTE['terracotta']};
         margin-bottom: 18px;
@@ -132,33 +136,33 @@ st.markdown(
         background: {PALETTE['terracotta']};
     }}
     .hero-h1 {{
-        font-family: 'Fraunces', serif;
-        font-variation-settings: 'opsz' 144, 'wght' 400, 'SOFT' 0, 'WONK' 1;
-        font-size: clamp(2.6rem, 5.6vw, 4.8rem);
-        line-height: 0.98;
-        letter-spacing: -0.025em;
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-size: clamp(2.1rem, 5.2vw, 4.2rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
         margin: 0 0 22px 0;
-        font-weight: 400;
+        font-weight: 500;
         color: {PALETTE['ink']};
     }}
     .hero-h1 em {{
-        font-style: italic;
+        font-style: normal;
+        font-weight: 600;
         color: {PALETTE['terracotta_d']};
     }}
     .hero-sub {{
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         color: {PALETTE['ink_soft']};
-        max-width: 660px;
-        font-style: italic;
-        line-height: 1.55;
+        max-width: 640px;
+        font-weight: 400;
+        line-height: 1.6;
         margin-bottom: 36px;
     }}
 
     /* ── eyebrows / section headings ────────────────────────────────── */
     .section-eyebrow {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 11px;
-        letter-spacing: 0.25em;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
         color: {PALETTE['ink_light']};
         margin: 0 0 8px 0;
@@ -172,21 +176,22 @@ st.markdown(
         background: {PALETTE['ink_light']};
     }}
     .section-title {{
-        font-family: 'Fraunces', serif;
-        font-variation-settings: 'opsz' 60, 'wght' 500, 'WONK' 1;
-        font-size: 1.9rem;
-        line-height: 1.15;
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-size: 1.75rem;
+        line-height: 1.18;
         margin: 0 0 22px 0;
-        letter-spacing: -0.015em;
+        letter-spacing: -0.02em;
+        font-weight: 500;
         color: {PALETTE['ink']};
     }}
-    .section-title em {{ font-style: italic; color: {PALETTE['terracotta_d']}; }}
+    .section-title em {{ font-style: normal; font-weight: 600; color: {PALETTE['terracotta_d']}; }}
     .caption {{
         font-size: 0.95rem;
         color: {PALETTE['ink_soft']};
-        font-style: italic;
+        font-weight: 400;
         margin: 0 0 20px 0;
         max-width: 680px;
+        line-height: 1.55;
     }}
 
     /* ── result block ───────────────────────────────────────────────── */
@@ -194,64 +199,58 @@ st.markdown(
         text-align: center;
         border-top: 1px solid {PALETTE['ink']};
         border-bottom: 1px solid {PALETTE['ink']};
-        padding: 44px 20px 52px;
+        padding: 40px 20px 48px;
         margin: 12px 0 56px 0;
         position: relative;
     }}
-    .result-block::before, .result-block::after {{
-        content: "❦";
-        position: absolute;
-        font-size: 18px;
-        color: {PALETTE['terracotta']};
-        background: {PALETTE['paper']};
-        padding: 0 14px;
-        left: 50%;
-        transform: translateX(-50%);
-    }}
-    .result-block::before {{ top: -10px; }}
-    .result-block::after {{ bottom: -12px; }}
     .result-label {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 11px;
-        letter-spacing: 0.25em;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
         color: {PALETTE['ink_light']};
         margin-bottom: 18px;
     }}
+    .result-main {{
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-size: clamp(1.2rem, 3.2vw, 1.85rem);
+        line-height: 1.35;
+        font-weight: 500;
+        color: {PALETTE['ink']};
+        font-variant-numeric: tabular-nums;
+    }}
     .result-big {{
-        font-family: 'Fraunces', serif;
-        font-variation-settings: 'opsz' 144, 'wght' 300, 'WONK' 1;
-        font-size: clamp(3.2rem, 10vw, 7rem);
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-size: clamp(3rem, 10vw, 6.5rem);
         line-height: 0.95;
         letter-spacing: -0.04em;
+        font-weight: 300;
         font-variant-numeric: tabular-nums lining-nums;
         color: {PALETTE['ink']};
     }}
     .result-big .pct-sign {{
         color: {PALETTE['terracotta']};
-        font-style: italic;
+        font-weight: 500;
         font-size: 0.7em;
         vertical-align: 0.05em;
     }}
     .result-secondary {{
-        font-family: 'Fraunces', serif;
-        font-style: italic;
-        font-size: 1.25rem;
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-size: 1.15rem;
         color: {PALETTE['ink_soft']};
         margin-top: 4px;
     }}
     .result-secondary strong {{
         font-weight: 600;
         color: {PALETTE['ink']};
-        font-style: normal;
     }}
 
     /* ── контролы (year + country) ──────────────────────────────────── */
     div[data-testid="stSlider"] label,
     div[data-testid="stSelectbox"] label {{
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'IBM Plex Mono', monospace !important;
         font-size: 10px !important;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.15em;
         text-transform: uppercase;
         color: {PALETTE['ink_light']} !important;
     }}
@@ -263,8 +262,8 @@ st.markdown(
         border: none !important;
         border-bottom: 2px solid {PALETTE['ink']} !important;
         border-radius: 0 !important;
-        font-family: 'Fraunces', serif !important;
-        font-size: 1.3rem !important;
+        font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
+        font-size: 1.2rem !important;
         font-weight: 500 !important;
         color: {PALETTE['ink']} !important;
     }}
@@ -273,24 +272,24 @@ st.markdown(
     div[data-testid="stMetric"] {{
         background: {PALETTE['paper']};
         padding: 24px 22px;
-        border: 1px solid {PALETTE['ink']};
+        border: 1px solid {PALETTE['ink_light']};
     }}
     div[data-testid="stMetricLabel"] {{
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'IBM Plex Mono', monospace !important;
         text-transform: uppercase;
-        letter-spacing: 0.18em;
+        letter-spacing: 0.12em;
         font-size: 10px !important;
         color: {PALETTE['ink_light']} !important;
     }}
     div[data-testid="stMetricValue"] {{
-        font-family: 'Fraunces', serif !important;
-        font-variation-settings: 'opsz' 60, 'wght' 500, 'WONK' 1;
-        font-size: 2.0rem !important;
+        font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
+        font-size: 1.85rem !important;
+        font-weight: 600 !important;
         color: {PALETTE['ink']} !important;
         font-variant-numeric: tabular-nums;
     }}
     div[data-testid="stMetricDelta"] {{
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'IBM Plex Mono', monospace !important;
         font-size: 11px !important;
         color: {PALETTE['ink_soft']} !important;
     }}
@@ -304,22 +303,21 @@ st.markdown(
 
     /* ── footnotes ───────────────────────────────────────────────────── */
     .footnotes {{
-        border-top: 4px double {PALETTE['ink']};
+        border-top: 1px solid {PALETTE['ink']};
         padding-top: 28px;
         margin-top: 64px;
-        font-size: 0.92rem;
+        font-size: 0.9rem;
         color: {PALETTE['ink_soft']};
-        font-style: italic;
+        font-weight: 400;
         line-height: 1.65;
     }}
     .footnotes h3 {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 11px;
-        letter-spacing: 0.2em;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
         color: {PALETTE['terracotta']};
         margin-bottom: 12px;
-        font-style: normal;
     }}
     .footnotes p {{ margin-bottom: 12px; }}
     .footnotes strong {{ color: {PALETTE['ink']}; font-weight: 600; }}
@@ -359,6 +357,7 @@ def load_data() -> dict[str, Any]:
 DATA = load_data()
 META = DATA["metadata"]
 COUNTRIES: dict[str, dict[str, Any]] = DATA["countries"]
+HISTORICAL: dict[str, Any] | None = DATA.get("historical_ever_born")
 YEAR_MIN: int = META["year_start"]
 YEAR_MAX: int = META["year_end"]
 WORLD: list[float] = META["world"]
@@ -393,24 +392,38 @@ def fmt_pct(p: float) -> str:
     return f"{p:.4f}"
 
 
+def fmt_share_among_all(p: float) -> str:
+    """Доля 0…1 среди всех родившихся — в процентах с адаптивной точностью."""
+    x = p * 100.0
+    if x >= 0.1:
+        return f"{x:.4f}"
+    if x >= 0.01:
+        return f"{x:.5f}"
+    return f"{x:.6f}"
+
+
 # ============================================================================
 # MASTHEAD + HERO
 # ============================================================================
 st.markdown(
     """
     <header class="masthead">
-        <div class="masthead-left">Демографический Атлас № 1 ※ Выпуск 2026</div>
-        <div class="masthead-right">по данным United Nations · World Population Prospects 2024</div>
+        <div class="masthead-left">Демографический атлас · 2026</div>
+        <div class="masthead-right">United Nations · World Population Prospects 2024</div>
     </header>
 
     <section>
-        <div class="hero-eyebrow">Когортные вероятности рождения</div>
-        <h1 class="hero-h1">Какова была вероятность<br><em>родиться</em> именно здесь<br>именно тогда?</h1>
+        <div class="hero-eyebrow">Условные вероятности по стране и году</div>
+        <h1 class="hero-h1">Насколько вероятно было<br><em>родиться здесь</em><br>в выбранный год?</h1>
         <p class="hero-sub">
-            Каждый год Земля принимает около 130&nbsp;миллионов живорождений. Этот атлас раскладывает
-            мировую когорту новорождённых на страны и годы и показывает удельный вес каждой ячейки —
-            то есть априорную вероятность того, что случайно выбранный младенец родился именно
-            в&nbsp;выбранной стране в&nbsp;выбранном году.
+            Число мировых живорождений по годам сильно меняется: в нашем окне 1950–2024 примерно от
+            ~92 до ~143&nbsp;млн в год (в 2020-е — порядка 130&nbsp;млн). Для выбранного года и страны
+            показана <strong>доля её живорождений в суммарном объёме по планете за тот же год</strong>.
+            Метафора «лотерея» — только образ: речь не о равной вероятности рождения в любой стране,
+            а о <strong>мысленном эксперименте</strong> «равновероятно выбрать одного новорождённого
+            среди всех родившихся в мире в этом календарном году» — тогда доля совпадает с условной
+            вероятностью страны при фиксированном годе (<em>P</em>(страна&nbsp;|&nbsp;год)), а не с
+            причинной «вероятностью родиться» у уже живущего человека.
         </p>
     </section>
     """,
@@ -430,14 +443,13 @@ REGIONS = sorted({c["g"] for c in COUNTRIES.values()})
 col_yr, col_co = st.columns([1, 1], gap="large")
 with col_yr:
     year = st.slider(
-        "ГОД РОЖДЕНИЯ (КАЛЕНДАРНАЯ КОГОРТА)",
+        "ГОД РОЖДЕНИЯ",
         min_value=YEAR_MIN,
         max_value=YEAR_MAX,
         value=1992,
         step=1,
         help=(
-            "Календарный год, по которому считается доля живорождений в "
-            "глобальной когорте новорождённых."
+            "Календарный год: считаем долю страны среди всех живорождений в мире за этот год."
         ),
     )
 with col_co:
@@ -448,8 +460,8 @@ with col_co:
         index=ISO_OPTIONS.index(default_iso),
         format_func=lambda x: LABEL_FOR[x],
         help=(
-            "ООН WPP 2024 ретроспективно применяет современные границы: "
-            "«Россия в 1950» означает территорию РСФСР, не СССР."
+            "Оценки WPP строят как согласованные ряды по странам с 1950 г.; "
+            "подробности территориальной базы см. в docs/METHODOLOGY.md."
         ),
     )
 
@@ -468,7 +480,7 @@ one_in = (w_births / c_births) if c_births > 0 else float("inf")
 st.markdown(
     f"""
     <div class="result-block">
-        <div class="result-label">Доля в мировой когорте новорождённых · {year}</div>
+        <div class="result-label">Доля страны в мировых живорождениях · {year}</div>
         <div class="result-big">{fmt_pct(pct)}<span class="pct-sign">%</span></div>
         <div class="result-secondary">примерно <strong>1 из {fmt_int(one_in)}</strong> новорождённых того года</div>
     </div>
@@ -482,12 +494,11 @@ st.markdown(
 # ============================================================================
 st.markdown(
     f"""
-    <div class="section-eyebrow">§ I · Пространственное распределение когорты</div>
-    <h2 class="section-title">Где рождались люди в&nbsp;<em>{year}</em>&nbsp;году</h2>
+    <div class="section-eyebrow">01 · Карта</div>
+    <h2 class="section-title">Распределение живорождений по странам в&nbsp;<em>{year}</em>&nbsp;году</h2>
     <p class="caption">
-        Цвет показывает удельный вес страны в мировой когорте живорождений по логарифмической шкале.
-        Темнее — выше доля. Под тёплыми оттенками скрыты крупнейшие центры воспроизводства;
-        бледный фон — страны с малым числом рождений или, реже, отсутствующие в датасете.
+        Интенсивность заливки — доля страны в общем числе живорождений в мире за этот год (логарифмическая шкала).
+        Темнее оттенок — большая доля. Светлый фон — очень малые значения (ниже ~0,01%) либо нет данных в наборе.
     </p>
     """,
     unsafe_allow_html=True,
@@ -545,9 +556,9 @@ fig_map.add_trace(
         customdata=map_df[["name", "births"]].values,
         colorscale=[
             [0.00, PALETTE["paper"]],
-            [0.05, "#ecdcb8"],
-            [0.20, "#e8b89c"],
-            [0.45, "#d97a5a"],
+            [0.05, "#e4e8ea"],
+            [0.20, "#c5d0d6"],
+            [0.45, "#89a7b5"],
             [0.65, PALETTE["terracotta"]],
             [0.85, PALETTE["terracotta_d"]],
             [1.00, PALETTE["terracotta_dd"]],
@@ -558,10 +569,10 @@ fig_map.add_trace(
         marker_line_width=0.35,
         colorbar=dict(
             title=dict(
-                text="доля когорты, %",
-                font=dict(family="JetBrains Mono", size=10, color=PALETTE["ink_soft"]),
+                text="доля от мира, %",
+                font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_soft"]),
             ),
-            tickfont=dict(family="JetBrains Mono", size=10, color=PALETTE["ink_soft"]),
+            tickfont=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_soft"]),
             thickness=10,
             len=0.55,
             outlinewidth=0,
@@ -608,8 +619,8 @@ fig_map.update_geos(
     showlakes=False,
     lataxis_showgrid=True,
     lonaxis_showgrid=True,
-    lataxis_gridcolor="rgba(42,24,16,0.10)",
-    lonaxis_gridcolor="rgba(42,24,16,0.10)",
+    lataxis_gridcolor="rgba(28,28,28,0.08)",
+    lonaxis_gridcolor="rgba(28,28,28,0.08)",
     lataxis_gridwidth=0.4,
     lonaxis_gridwidth=0.4,
 )
@@ -618,7 +629,7 @@ fig_map.update_layout(
     plot_bgcolor=PALETTE["paper"],
     margin=dict(l=0, r=0, t=0, b=0),
     height=520,
-    font=dict(family="Fraunces", color=PALETTE["ink"]),
+    font=dict(family="IBM Plex Sans", color=PALETTE["ink"]),
     dragmode=False,
 )
 st.plotly_chart(
@@ -638,8 +649,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ============================================================================
 st.markdown(
     """
-    <div class="section-eyebrow">§ II · Изотип когорты</div>
-    <h2 class="section-title">Из <em>1000</em> младенцев мира того года —<br>столько родились здесь</h2>
+    <div class="section-eyebrow">02 · Изотип</div>
+    <h2 class="section-title">Из тысячи условно случайных новорождённых мира —<br><em>сколько</em> из них здесь</h2>
     """,
     unsafe_allow_html=True,
 )
@@ -652,13 +663,13 @@ if dots_to_fill == 0:
     )
 elif dots_to_fill > 800:
     isotype_caption = (
-        f"{dots_to_fill} из 1000 младенцев мира в {year} году родились в этой стране — "
-        "это была демографическая сверхдержава."
+        f"{dots_to_fill} из 1000 отобранных новорождённых того года приходятся на эту страну — "
+        "очень высокая доля в мировом объёме живорождений."
     )
 else:
     isotype_caption = (
-        f"Каждая точка соответствует одному младенцу из тысячи случайно выбранных по миру в {year} году. "
-        "Закрашены родившиеся в выбранной стране."
+        f"Каждая точка — один из тысячи равновероятно выбранных новорождённых планеты в {year} году. "
+        "Закрашены рождения в выбранной стране."
     )
 st.markdown(f"<p class='caption'>{isotype_caption}</p>", unsafe_allow_html=True)
 
@@ -702,8 +713,8 @@ st.plotly_chart(fig_iso, width="stretch", config={"displayModeBar": False})
 # Лёгкая легенда
 st.markdown(
     f"""
-    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;
-        text-transform:uppercase;letter-spacing:0.1em;color:{PALETTE['ink_soft']};
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;
+        text-transform:uppercase;letter-spacing:0.08em;color:{PALETTE['ink_soft']};
         margin-top:8px;display:flex;gap:24px;flex-wrap:wrap;">
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;
             background:{PALETTE['terracotta']};border:1px solid {PALETTE['terracotta_d']};
@@ -747,7 +758,7 @@ share_in_region = (
 
 st.markdown(
     """
-    <div class="section-eyebrow">§ III · Демографический контекст</div>
+    <div class="section-eyebrow">03 · Контекст</div>
     <h2 class="section-title">Что означают эти числа</h2>
     """,
     unsafe_allow_html=True,
@@ -808,12 +819,11 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ============================================================================
 st.markdown(
     """
-    <div class="section-eyebrow">§ IV · Структура мировой когорты</div>
-    <h2 class="section-title">Где рождалось <em>больше всего</em> людей<br>в выбранный год</h2>
+    <div class="section-eyebrow">04 · Рейтинг стран</div>
+    <h2 class="section-title">Страны с наибольшим числом живорождений<br>в выбранный год</h2>
     <p class="caption">
-        Топ-12 стран по абсолютному числу живорождений плюс выбранная страна
-        (если она вне топа). На столько процентов мировой когорты приходится
-        на каждую территорию.
+        Двенадцать стран с максимальным объёмом живорождений и выбранная вами страна, если её нет в списке.
+        Подпись у столбца — процент от всех живорождений в мире за этот год.
     </p>
     """,
     unsafe_allow_html=True,
@@ -853,9 +863,9 @@ fig_bar = go.Figure(
         ),
         text=[f"{p:.2f}%" for p in bar_df["pct"]],
         textposition="outside",
-        textfont=dict(family="JetBrains Mono", color=PALETTE["ink_soft"], size=11),
+        textfont=dict(family="IBM Plex Mono", color=PALETTE["ink_soft"], size=11),
         hovertemplate=(
-            "<b>%{y}</b><br>%{x:.3f}% мировой когорты"
+            "<b>%{y}</b><br>%{x:.3f}% от мировых живорождений года"
             "<br>%{customdata:,.0f} живорождений<extra></extra>"
         ),
         customdata=bar_df["births"],
@@ -869,17 +879,17 @@ fig_bar.update_layout(
     margin=dict(l=0, r=80, t=10, b=20),
     yaxis=dict(
         autorange="reversed",
-        tickfont=dict(family="Fraunces", color=PALETTE["ink"], size=13),
+        tickfont=dict(family="IBM Plex Sans", color=PALETTE["ink"], size=13),
         showgrid=False,
     ),
     xaxis=dict(
         showgrid=True,
         gridcolor=PALETTE["paper_darker"],
-        tickfont=dict(family="JetBrains Mono", color=PALETTE["ink_light"], size=10),
+        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
         ticksuffix="%",
         zeroline=False,
     ),
-    font=dict(family="Fraunces"),
+    font=dict(family="IBM Plex Sans"),
     showlegend=False,
 )
 st.plotly_chart(
@@ -894,16 +904,15 @@ st.plotly_chart(
 # ============================================================================
 st.markdown(
     f"""
-    <div class="section-eyebrow">§ V · Когортная динамика</div>
+    <div class="section-eyebrow">05 · Динамика</div>
     <h2 class="section-title">
-        Кривая живорождений в&nbsp;<em>{country['r']}</em>,<br>
-        от <em>{YEAR_MIN}</em> до <em>{YEAR_MAX}</em>
+        Число живорождений в&nbsp;<em>{country['r']}</em>,<br>
+        <em>{YEAR_MIN}</em>—<em>{YEAR_MAX}</em>
     </h2>
     <p class="caption">
-        Абсолютное число живорождений по годам. Точка — выбранный вами год.
-        В развитых экономиках хорошо видны первая (1950–60-е) и вторая (1980-е, эхо)
-        послевоенные демографические волны; в развивающихся — поздний демографический переход
-        с пиком рождаемости в 1980–2000-х.
+        Абсолютные значения по годам. Маркер — выбранный год. Пунктир — сглаженный ряд (окно 5 лет).
+        На кривых типичны послевоенные пики в индустриальных странах и более поздний пик рождаемости
+        в странах с поздним демографическим переходом.
     </p>
     """,
     unsafe_allow_html=True,
@@ -927,7 +936,7 @@ fig_line.add_trace(
         mode="lines",
         line=dict(color=PALETTE["terracotta_d"], width=1.6),
         fill="tozeroy",
-        fillcolor="rgba(184,73,47,0.15)",
+        fillcolor="rgba(61,90,108,0.18)",
         hovertemplate="<b>%{x}</b><br>%{y:,.0f} живорождений<extra></extra>",
         name="живорождения",
     )
@@ -954,7 +963,7 @@ fig_line.add_trace(
         ),
         text=[f"{year}"],
         textposition="top center",
-        textfont=dict(family="Fraunces", color=PALETTE["ink"], size=14),
+        textfont=dict(family="IBM Plex Sans", color=PALETTE["ink"], size=14),
         showlegend=False,
         hovertemplate=f"<b>{year}</b><br>{fmt_int(c_births)} живорождений<extra></extra>",
     )
@@ -966,7 +975,7 @@ fig_line.update_layout(
     margin=dict(l=20, r=20, t=20, b=30),
     xaxis=dict(
         showgrid=False,
-        tickfont=dict(family="JetBrains Mono", color=PALETTE["ink_light"], size=11),
+        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=11),
         showline=True,
         linecolor=PALETTE["ink"],
         linewidth=1,
@@ -975,10 +984,10 @@ fig_line.update_layout(
     yaxis=dict(
         showgrid=True,
         gridcolor=PALETTE["paper_darker"],
-        tickfont=dict(family="JetBrains Mono", color=PALETTE["ink_light"], size=10),
+        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
         title=dict(
             text="живорождений в год",
-            font=dict(family="JetBrains Mono", size=10, color=PALETTE["ink_light"]),
+            font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
         ),
         rangemode="tozero",
         tickformat=",",
@@ -987,7 +996,7 @@ fig_line.update_layout(
         orientation="h",
         x=0,
         y=1.12,
-        font=dict(family="JetBrains Mono", size=10, color=PALETTE["ink_soft"]),
+        font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_soft"]),
         bgcolor="rgba(0,0,0,0)",
     ),
 )
@@ -995,16 +1004,15 @@ st.plotly_chart(fig_line, width="stretch", config={"displayModeBar": False})
 
 
 # ============================================================================
-# § VI · СРАВНЕНИЕ КОГОРТ
+# Сравнение двух стран
 # ============================================================================
 st.markdown(
     """
-    <div class="section-eyebrow">§ VI · Сравнение когорт</div>
-    <h2 class="section-title">Сопоставление двух траекторий</h2>
+    <div class="section-eyebrow">06 · Сравнение</div>
+    <h2 class="section-title">Две страны на одной временной шкале</h2>
     <p class="caption">
-        Демографическая компаративистика: положите две страновые траектории живорождений
-        на одну ось — и за пару секунд читаются эпохи демографических переходов,
-        войны, бэби-бумы, пост-советские «провалы» и «эхо-волны».
+        Сопоставление годовых объёмов живорождений: фазы демографического перехода,
+        кризисы, восстановительные всплески рождаемости.
     </p>
     """,
     unsafe_allow_html=True,
@@ -1055,7 +1063,7 @@ fig_cmp.update_layout(
     margin=dict(l=20, r=20, t=20, b=30),
     xaxis=dict(
         showgrid=False,
-        tickfont=dict(family="JetBrains Mono", color=PALETTE["ink_light"], size=11),
+        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=11),
         showline=True,
         linecolor=PALETTE["ink"],
         linewidth=1,
@@ -1064,10 +1072,10 @@ fig_cmp.update_layout(
     yaxis=dict(
         showgrid=True,
         gridcolor=PALETTE["paper_darker"],
-        tickfont=dict(family="JetBrains Mono", color=PALETTE["ink_light"], size=10),
+        tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
         title=dict(
             text="живорождений в год",
-            font=dict(family="JetBrains Mono", size=10, color=PALETTE["ink_light"]),
+            font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
         ),
         rangemode="tozero",
         tickformat=",",
@@ -1076,11 +1084,229 @@ fig_cmp.update_layout(
         orientation="h",
         x=0,
         y=1.12,
-        font=dict(family="Fraunces", size=12, color=PALETTE["ink"]),
+        font=dict(family="IBM Plex Sans", size=12, color=PALETTE["ink"]),
         bgcolor="rgba(0,0,0,0)",
     ),
 )
 st.plotly_chart(fig_cmp, width="stretch", config={"displayModeBar": False})
+
+
+# ============================================================================
+# § VI · PRB ~117 млрд — ваша доля среди всех когда-либо родившихся (оценка)
+# ============================================================================
+_pop_k = float(META.get("world_population_july_2024_thousands", 8120.0 * 1000.0))
+_alive_share = (_pop_k * 1000.0) / float(EVER_LIVED_PRB_2022)
+_sum_world_births_cohort = float(
+    META.get("world_births_sum_1950_2024_persons", sum(WORLD) * 1000.0),
+)
+_share_wpp_window_in_prb = _sum_world_births_cohort / float(EVER_LIVED_PRB_2022)
+_births_c_country_window = sum(float(x) for x in country["b"]) * 1000.0
+_share_country_in_prb = _births_c_country_window / float(EVER_LIVED_PRB_2022)
+_p_you_prb = share_of_prb_total(float(c_births))
+_recip_prb = one_in_reciprocal(_p_you_prb)
+_share_year_world_in_prb = float(w_births) / float(EVER_LIVED_PRB_2022)
+
+st.markdown(
+    """
+    <div class="section-eyebrow">§ VI · Среди всех, кто когда-либо рождался</div>
+    <h2 class="section-title">Оценка PRB: с появления <em>Homo sapiens</em> родилось порядка
+    117&nbsp;млрд человек</h2>
+    <p class="caption">
+        Другая перспектива: не «доля в своём годе», а доля <strong>ваших живорождений
+        (страна&nbsp;+ календарный год)</strong> в совокупном числе рождений по модели
+        Population Reference Bureau (Kaneda&nbsp;&amp;&nbsp;Haub, 2022). Это всё ещё модельный
+        счётчик, не «точная перепись истории»; у PRB указана широкая неопределённость (порядка
+        ±20–30&nbsp;%). Цифра 117&nbsp;млрд относится к <strong>рождениям</strong>, не к
+        когда-либо одновременно жившим.
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
+st.markdown(
+    f"""
+    <div class="result-block">
+        <div class="result-label">Доля среди ~117 млрд рождений (PRB)&nbsp;· {country['r']}, {year}</div>
+        <div class="result-main">
+            {humanize_one_in(_recip_prb)} — или около <strong>{format_tiny_percent(_p_you_prb)}&nbsp;%</strong>
+        </div>
+        <div class="result-secondary" style="margin-top:10px;font-size:0.95rem;">
+            Мысленный эксперимент: один равновероятный выбор среди всех рождений в масштабе оценки PRB —
+            без подмены на «вероятность родиться» для уже существующего человека.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+c1, c2, c3 = st.columns(3)
+with c1:
+    st.metric(
+        f"Все рожд. в {year} ({country['r']})",
+        f"{format_tiny_percent(_p_you_prb)}%",
+        help="births(C,Y)·1000 / 117e9",
+    )
+    st.caption("доля от 117 млрд (PRB)")
+with c2:
+    st.metric(
+        f"Сумма рожд. {country['r']}, 1950–2024",
+        f"{format_tiny_percent(_share_country_in_prb)}%",
+        help="Сумма yearly births в датасете ×1000 / 117e9",
+    )
+    st.caption("только окно ООН WPP в приложении")
+with c3:
+    st.metric(
+        "Живущие сейчас (оценка WPP 2024)",
+        f"{_alive_share*100:.1f}%",
+        help="Оценка численности «World» 1 июля 2024 из метаданных JSON (если есть) / 117e9",
+    )
+    st.caption(f"~{_pop_k*1000/1e9:.2f} млрд чел.; для сравнения PRB в статье ~8 млрд / 117 млрд ≈ 6,8–7%")
+
+st.caption(
+    f"Пулы для контекста: все живорождения мира 1950–2024 в этом приложении ≈ "
+    f"{_share_wpp_window_in_prb*100:.1f}% от 117 млрд (PRB); "
+    f"год {year} (мир) ≈ {_share_year_world_in_prb*100:.3f}% от 117 млрд."
+)
+st.markdown(
+    f"""
+    <p class="caption" style="font-size:0.88rem;margin-top:20px;">
+        <strong>Источник оценки 117 млрд:</strong>
+        <a href="{PRB_ARTICLE_URL}" rel="noopener noreferrer">Toshiko Kaneda &amp; Carl Haub,
+        «How Many People Have Ever Lived on Earth?»</a>, Population Reference Bureau, 2022.
+        Погрешность порядка ±20–30&nbsp;% по самой PRB; модель 190&nbsp;000 г. до н.э. — сер. 2022.
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================================
+# Доля года среди всех когда-либо родившихся
+# ============================================================================
+if HISTORICAL is None:
+    st.info(
+        "Блок «доля года среди всех родившихся» появится после пересборки датасета: "
+        "`python scripts/build_data.py` в каталоге проекта."
+    )
+else:
+    pct_blocks = HISTORICAL["pct_year"]
+    p_lo = pct_blocks["low"]
+    p_mid = pct_blocks["central"]
+    p_hi = pct_blocks["high"]
+    yi = year - YEAR_MIN
+    tot = HISTORICAL["total_ever_born_persons"]
+    share_un = float(HISTORICAL["share_of_all_births_un_years_in_central"])
+    st.markdown(
+        """
+        <div class="section-eyebrow">07 · Год во всей истории рождений</div>
+        <h2 class="section-title">Доля выбранного года среди <em>всех</em> когда-либо родившихся</h2>
+        <p class="caption">
+            Другое сравнение с разделами 01–06: год здесь не зафиксирован, а попадает в полную оценку массы рождений.
+            Для календарных годов 1950–2024 берётся отношение мировых живорождений ООН к выбранной оценке числа
+            всех родившихся за историю (<em>N</em>). Три значения <em>N</em> задают грубый интервал неопределённости;
+            это не доверительный интервал в статистическом смысле.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"""
+        <div class="result-block">
+            <div class="result-label">P(год {year} | среди всех родившихся)</div>
+            <div class="result-main">
+                от&nbsp;<strong>{fmt_share_among_all(p_lo[yi])}</strong>%
+                &nbsp;…&nbsp;
+                <strong>{fmt_share_among_all(p_mid[yi])}</strong>%
+                &nbsp;…&nbsp;до&nbsp;<strong>{fmt_share_among_all(p_hi[yi])}</strong>%
+            </div>
+            <div class="result-secondary" style="margin-top:12px;font-size:0.92rem;">
+                Сценарии <em>N</em>: ~{tot['low']/1e9:.0f}&nbsp;— {tot['central']/1e9:.0f}&nbsp;— {tot['high']/1e9:.0f}
+                млрд человек.
+                Доля всех лет 1950–2024 в центральном сценарии: ≈&nbsp;{share_un*100:.1f}% суммарных рождений
+                (остальное — до&nbsp;1950 и иллюстративная реконструкция).
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    y_mid_pct = [p * 100.0 for p in p_mid]
+    y_lo_pct = [p * 100.0 for p in p_lo]
+    y_hi_pct = [p * 100.0 for p in p_hi]
+    fig_hist = go.Figure()
+    fig_hist.add_trace(
+        go.Scatter(
+            x=years_full,
+            y=y_hi_pct,
+            mode="lines",
+            line=dict(width=0),
+            hoverinfo="skip",
+            showlegend=False,
+        )
+    )
+    fig_hist.add_trace(
+        go.Scatter(
+            x=years_full,
+            y=y_lo_pct,
+            mode="lines",
+            line=dict(width=0),
+            fill="tonexty",
+            fillcolor="rgba(61, 90, 108, 0.18)",
+            name="интервал по N",
+            hovertemplate=(
+                "Нижняя граница (большое N): %{y:.5f}%<extra></extra>"
+            ),
+        )
+    )
+    fig_hist.add_trace(
+        go.Scatter(
+            x=years_full,
+            y=y_mid_pct,
+            mode="lines",
+            name="центральный сценарий",
+            line=dict(color=PALETTE["terracotta_d"], width=2.2),
+            hovertemplate="%{x}: %{y:.5f}% всех рожд.<extra></extra>",
+        )
+    )
+    fig_hist.add_vline(
+        x=year,
+        line=dict(color=PALETTE["ink"], width=1, dash="dot"),
+        opacity=0.5,
+    )
+    fig_hist.update_layout(
+        paper_bgcolor=PALETTE["paper"],
+        plot_bgcolor=PALETTE["paper"],
+        height=340,
+        margin=dict(l=20, r=20, t=36, b=30),
+        xaxis=dict(
+            showgrid=False,
+            tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=11),
+            showline=True,
+            linecolor=PALETTE["ink"],
+            linewidth=1,
+            dtick=10,
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor=PALETTE["paper_darker"],
+            tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
+            title=dict(
+                text="доля всех рожд., %",
+                font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
+            ),
+            rangemode="tozero",
+        ),
+        legend=dict(
+            orientation="h",
+            x=0,
+            y=1.12,
+            font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_soft"]),
+            bgcolor="rgba(0,0,0,0)",
+        ),
+    )
+    st.plotly_chart(fig_hist, width="stretch", config={"displayModeBar": False})
+    with st.expander("Пояснения к модели (из датасета)", expanded=False):
+        st.markdown(HISTORICAL.get("description_ru", ""))
+        st.caption(HISTORICAL.get("caution_ru", ""))
 
 
 # ============================================================================
@@ -1089,41 +1315,52 @@ st.plotly_chart(fig_cmp, width="stretch", config={"displayModeBar": False})
 st.markdown(
     """
     <footer class="footnotes">
-        <h3>Источники и методология</h3>
+        <h3>Источники и краткая методология</h3>
         <p>
-            <strong>Источник.</strong> United Nations, Department of Economic and Social Affairs,
+            <strong>Данные.</strong> United Nations, Department of Economic and Social Affairs,
             Population Division (2024). <em>World Population Prospects 2024.</em> Лицензия CC&nbsp;BY&nbsp;3.0&nbsp;IGO.
-            Используется показатель <em>Births&nbsp;(thousands)</em> — оценочное число живорождений
-            в&nbsp;год по&nbsp;каждой стране (Estimates 1950–2023 + Medium variant 2024).
+            Берётся оценка <em>Births (thousands)</em> — число живорождений за год по стране
+            (Estimates 1950–2023 и medium-сценарий для 2024).
         </p>
         <p>
-            <strong>Метод.</strong> Когортная вероятность места рождения вычисляется как
-            <em>P(C&nbsp;|&nbsp;Y)&nbsp;=&nbsp;births(C,&nbsp;Y)&nbsp;÷&nbsp;world_births(Y)</em>:
-            доля живорождений в стране&nbsp;C среди всех живорождений мира за тот же год&nbsp;Y.
-            Это априорная вероятность того, что случайно выбранный младенец из глобальной когорты
-            родился именно в&nbsp;C.
+            <strong>Что именно сейчас считается.</strong> Для года <em>Y</em> и страны <em>C</em>:
+            <em>births(C,&nbsp;Y)&nbsp;/&nbsp;births(мир,&nbsp;Y)</em> — доля живорождений на
+            территории <em>C</em> в суммарном числе живорождений по планете за этот календарный год.
+            Удобная содержательная интерпретация мысленного эксперимента «равновероятно выбрать одного
+            новорождённого среди всех родившихся в мире в год <em>Y</em>»: найденная величина —
+            условная вероятность страны при фиксированном годе. Это <em>не</em> ответ на вопрос
+            «с какой вероятностью родиться в таком-то году»: см. блок <strong>§&nbsp;VI</strong> (PRB)
+            и <strong>07</strong> (доля календарного года при нескольких сценариях <em>N</em>).
         </p>
         <p>
-            <strong>Границы — современные.</strong> ООН в WPP&nbsp;2024 ретроспективно применяет
-            современные границы стран. То&nbsp;есть «Россия в&nbsp;1950» означает территорию
-            современной РФ (РСФСР), а не СССР; «Бангладеш в&nbsp;1960» — территорию современной
-            Бангладеш (Восточный Пакистан); «Германия» — объединённую территорию ФРГ&nbsp;+&nbsp;ГДР.
+            <strong>Границы территорий.</strong> В WPP&nbsp;2024 используют современные границы,
+            перенесённые на прошлое: «Россия в 1950» — нынешняя РФ в границах того времени (≈&nbsp;РСФСР),
+            не СССР целиком; «Бангладеш в 1960» — нынешняя Бангладеш; «Германия» — ФРГ+ГДР как
+            единое поле оценки.
         </p>
         <p>
-            <strong>Точность.</strong> Оценки ООН строятся методами <em>cohort-component projection</em>
-            на базе vital&nbsp;registration, переписей и&nbsp;DHS/MICS. Развитые страны: ±1–2%;
-            большинство развивающихся: ±5–10%; страны затяжного кризиса (Афганистан, Сомали, ДРК): ±15–20%.
+            <strong>Качество оценок.</strong> ООН объединяет регистрацию актов гражданского состояния,
+            переписи и обследования (в&nbsp;том числе DHS/MICS), для отдельных стран — косвенные методы;
+            модели в духе когортно‑компонентных прогнозов дают сглаженные ряды. Очень грубо по группам:
+            развитые страны с полной регистрацией — порядка ±1–2&nbsp;%; большинство прочих — ±5–10&nbsp;%;
+            зоны длительных кризисов — до ±15–20&nbsp;%.
         </p>
         <p>
-            <strong>Что не учтено.</strong> Младенческая и&nbsp;детская смертность (U5MR), миграция в&nbsp;первые
-            годы жизни, изменение государственных границ. Это чистая «лотерея места рождения»
-            на&nbsp;момент живорождения, без поправки на дальнейшую выживаемость.
+            <strong>Ограничения модели.</strong> Не учитываются младенческая и детская смертность,
+            миграция в первые годы жизни, смена политических границ при жизни того же человека — показатель
+            относится к месту и моменту рождения, а не к «где вы выросли».
         </p>
         <p>
-            <strong>Покрытие.</strong> 211&nbsp;стран и территорий, 75&nbsp;лет (1950–2024),
-            ≈&nbsp;15&nbsp;800&nbsp;точек данных. Малые территории с&nbsp;пиковыми
-            &lt;&nbsp;1&nbsp;000&nbsp;живорождений в&nbsp;год (Ватикан, Токелау, Питкэрн)
-            исключены как статистически шумные.
+            <strong>Покрытие и мелкие территории.</strong> 211 стран и территорий, 1950–2024,
+            около 15&nbsp;800 пар «страна‑год». Микроэнклавы с пиком живорождений &lt;&nbsp;1000 в год
+            отброшены как шум (Ватикан, Токелау, Питкерн и аналоги).
+        </p>
+        <p>
+            <strong>Как расширять назад во времени.</strong> До 1950 в WPP единой глобальной сетки нет;
+            возможная склейка — исторические ряды численности (в&nbsp;том числе Maddison Project),
+            обобщённые оценки рождаемости по регионам и для части стран —
+            <em>Human Fertility Database</em> (точные когортные таблицы по рождаемости для ограниченного
+            набора государств), плюс национальная историческая демография; неопределённость резко растёт.
         </p>
     </footer>
     """,

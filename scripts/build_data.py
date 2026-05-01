@@ -17,6 +17,15 @@ from collections import defaultdict
 
 import pandas as pd
 
+_ROOT_STR = str(Path(__file__).resolve().parent.parent)
+if _ROOT_STR not in sys.path:
+    sys.path.insert(0, _ROOT_STR)
+
+from domain.historical_ever_born import (  # noqa: E402
+    build_historical_calibration,
+    pct_year_among_ever_born,
+)
+
 # ============================================================================
 # Конфигурация путей
 # ============================================================================
@@ -146,6 +155,28 @@ REGIONS = {
 ISO_TO_REGION = {iso: region for region, isos in REGIONS.items() for iso in isos}
 
 
+def _world_population_july_2024_thousands(df_all: pd.DataFrame) -> float | None:
+    """Численность «World» на 1 июля 2024 (тысячи человек), если колонка есть в xlsx."""
+    name_col = "Region, subregion, country or area *"
+    pop_col = None
+    for col in df_all.columns:
+        label = str(col)
+        if "Total Population" in label and "1 July" in label and "thousands" in label.lower():
+            pop_col = col
+            break
+    if pop_col is None:
+        return None
+    world = df_all[
+        (df_all[name_col] == "World") & (df_all["Year"].astype(int) == YEAR_MAX)
+    ]
+    if world.empty:
+        return None
+    raw = world.iloc[0][pop_col]
+    if pd.isna(raw):
+        return None
+    return float(raw)
+
+
 # ============================================================================
 # Основная функция сборки
 # ============================================================================
@@ -206,20 +237,28 @@ def build() -> dict:
     }
     print(f"   после фильтрации малых территорий: {len(valid)} стран")
 
+    world_births_sum_persons = int(round(sum(world_arr) * 1000.0))
+    pop2024k = _world_population_july_2024_thousands(df_all)
+
+    meta: dict = {
+        "source": "UN World Population Prospects 2024",
+        "citation": (
+            "United Nations, Department of Economic and Social Affairs, "
+            "Population Division (2024). World Population Prospects 2024."
+        ),
+        "license": "CC BY 3.0 IGO",
+        "units": "thousands of live births per year",
+        "year_start": YEAR_MIN,
+        "year_end": YEAR_MAX,
+        "world": world_arr,
+        "world_births_sum_1950_2024_persons": world_births_sum_persons,
+    }
+    if pop2024k is not None:
+        meta["world_population_july_2024_thousands"] = round(pop2024k, 1)
+
     # Сборка финального компактного словаря
     out = {
-        "metadata": {
-            "source": "UN World Population Prospects 2024",
-            "citation": (
-                "United Nations, Department of Economic and Social Affairs, "
-                "Population Division (2024). World Population Prospects 2024."
-            ),
-            "license": "CC BY 3.0 IGO",
-            "units": "thousands of live births per year",
-            "year_start": YEAR_MIN,
-            "year_end": YEAR_MAX,
-            "world": world_arr,
-        },
+        "metadata": meta,
         "countries": {},
     }
 
@@ -243,6 +282,13 @@ def build() -> dict:
         print(f"   ⚠️  пропущено без русского имени: {skipped}")
 
     print(f"   итого {len(out['countries'])} стран в JSON")
+
+    world_f = [float(x) for x in world_arr]
+    historical = pct_year_among_ever_born(world_f)
+    historical["calibration_pre_1950"] = build_historical_calibration(world_f)
+    out["historical_ever_born"] = historical
+    print("   добавлен блок historical_ever_born (доля года среди всех родившихся)")
+
     return out
 
 
