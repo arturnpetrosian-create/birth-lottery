@@ -67,6 +67,47 @@ html, body {
 .hero {
   margin-bottom: 64px;
 }
+.nl-push {
+  margin-bottom: 48px;
+  padding: 20px 0 28px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.nl-push h3 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin: 0 0 10px 0;
+}
+.nl-push textarea {
+  width: 100%;
+  max-width: 640px;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.45;
+  padding: 12px;
+  border: 1px solid var(--ink-light);
+  background: var(--paper);
+  color: var(--ink);
+  box-sizing: border-box;
+}
+.nl-push textarea:focus { outline: 2px solid var(--terracotta-dark); outline-offset: 2px; }
+.nl-push button {
+  margin-top: 12px;
+  padding: 12px 22px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--terracotta-dark);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+.nl-push button:hover { filter: brightness(1.08); }
+.nl-push #nlMsg { margin-top: 12px; min-height: 1.2em; }
 .hero-eyebrow {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
@@ -587,6 +628,16 @@ html, body {
   <p class="hero-sub">Источник — <strong>ООН, World Population Prospects&nbsp;2024</strong>: для каждой страны и года указана оценка числа рождений (в таблице <em>Births</em> / <em>live births</em>). Мировой итог от года к году заметно меняется: в 1950–2024 обычно ~92–143&nbsp;млн рождений в год (в 2020‑е — порядка 130&nbsp;млн). Для пары «страна + календарный год» показана <strong>доля рождений на её территории в мировом итоге за этот год</strong>. «Лотерея» — образ: мысленный эксперимент «равновероятно выбрать одного новорождённого из мировой когорты года» даёт <em>P</em>(страна&nbsp;|&nbsp;год), не «личный шанс родиться». §&nbsp;VI ниже — шкала PRB (~117&nbsp;млрд рождений за историю).</p>
 </section>
 
+<section class="nl-push" aria-label="Ввод своими словами">
+  <h3>Своими словами · подставить страну и год</h3>
+  <p class="caption">Фраза обрабатывается <strong>в браузере</strong> (без внешнего ИИ), затем подставляются поля ниже — в духе «данные сами подстроились под вас».</p>
+  <textarea id="nlInput" rows="3" placeholder="Например: вырос в Казахстане, родился в 1988 / Japan 2000 / Киев, Украина, 1999"></textarea>
+  <div>
+    <button type="button" id="nlBtn">Разобрать и подставить</button>
+  </div>
+  <p class="caption" id="nlMsg"></p>
+</section>
+
 <section class="controls">
   <div class="control-group">
     <label>Год рождения</label>
@@ -766,6 +817,72 @@ countries.forEach(c => {
   sel.appendChild(opt);
 });
 sel.value = 'RUS';
+
+// ========== NL PUSH (разбор фразы в браузере) ==========
+const NL_HINTS = {
+  'рф': 'RUS', 'россии': 'RUS', 'россия': 'RUS', 'russia': 'RUS', 'ссср': 'RUS',
+  'украин': 'UKR', 'ukraine': 'UKR',
+  'сша': 'USA', 'америк': 'USA', 'usa': 'USA', 'united states': 'USA',
+  'кита': 'CHN', 'china': 'CHN',
+  'индии': 'IND', 'индия': 'IND', 'india': 'IND',
+  'герман': 'DEU', 'germany': 'DEU',
+  'польш': 'POL', 'poland': 'POL',
+  'япон': 'JPN', 'japan': 'JPN',
+  'казахстан': 'KAZ', 'бразили': 'BRA', 'франц': 'FRA', 'турц': 'TUR',
+  'британ': 'GBR', 'англи': 'GBR', 'армени': 'ARM', 'азербайджан': 'AZE',
+};
+function normalizeNl(s) {
+  return String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
+}
+function extractYearsNl(norm) {
+  const m = norm.match(/\b(19[5-9]\d|20[0-2]\d)\b/g) || [];
+  return m.map(x => +x).filter(y => y >= YEAR_MIN && y <= YEAR_MAX);
+}
+function matchCountryNl(norm) {
+  const hintIso = [];
+  for (const [hint, iso] of Object.entries(NL_HINTS))
+    if (norm.includes(hint)) hintIso.push(iso);
+  const scored = [];
+  for (const [iso, d] of Object.entries(DATA.countries)) {
+    for (const label of [d.r, d.n]) {
+      if (!label) continue;
+      const L = normalizeNl(label);
+      if (L.length < 3) continue;
+      if (norm.includes(L)) scored.push([iso, L.length]);
+    }
+  }
+  scored.sort((a, b) => b[1] - a[1]);
+  if (scored.length) {
+    const best = scored[0][1];
+    const tops = [...new Set(scored.filter(([, ln]) => ln === best).map(([i]) => i))];
+    if (tops.length === 1) return tops[0];
+  }
+  const uniqHints = [...new Set(hintIso)];
+  if (uniqHints.length === 1) return uniqHints[0];
+  return null;
+}
+$('nlBtn').addEventListener('click', () => {
+  const norm = normalizeNl($('nlInput').value);
+  const msg = $('nlMsg');
+  msg.textContent = '';
+  const years = extractYearsNl(norm);
+  if (!years.length) {
+    msg.textContent = 'Укажите год в диапазоне 1950–2024, например: «Россия, 1992».';
+    return;
+  }
+  const y = years[years.length - 1];
+  const iso = matchCountryNl(norm);
+  if (!iso) {
+    msg.textContent = 'Не удалось однозначно распознать страну — используйте название из списка стран или попробуйте «Страна, год».';
+    return;
+  }
+  const yi = y;
+  $('yearInput').value = yi;
+  $('yearSlider').value = yi;
+  sel.value = iso;
+  msg.textContent = 'Подставлено: ' + DATA.countries[iso].r + ', ' + yi + '.';
+  update();
+});
 
 // ========== ISOTYPE GRID ==========
 const grid = $('isotypeGrid');

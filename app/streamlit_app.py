@@ -46,6 +46,8 @@ def _ensure_repo_root_on_path() -> None:
 _ensure_repo_root_on_path()
 
 import pandas as pd  # noqa: E402
+from domain.birth_narrative import narrative_markdown_ru  # noqa: E402
+from domain.nl_birth_query import parse_birth_description  # noqa: E402
 from domain.prb_ever_lived import (  # noqa: E402
     EVER_LIVED_PRB_2022,
     PRB_ARTICLE_URL,
@@ -479,25 +481,61 @@ LABEL_FOR = {iso: c["r"] for iso, c in sorted_countries}
 ISO_TO_REGION = {iso: c["g"] for iso, c in COUNTRIES.items()}
 REGIONS = sorted({c["g"] for c in COUNTRIES.values()})
 
+default_iso0 = "RUS" if "RUS" in ISO_OPTIONS else ISO_OPTIONS[0]
+if "bl_year" not in st.session_state:
+    st.session_state.bl_year = 1992
+if "bl_iso" not in st.session_state:
+    st.session_state.bl_iso = default_iso0
+if st.session_state.bl_iso not in ISO_OPTIONS:
+    st.session_state.bl_iso = default_iso0
+
+st.markdown("#### Ответ «как у агента» — сначала своими словами")
+st.caption(
+    "Опишите страну и год; фраза **не уходит на внешний сервер**: разбор текста на этой странице и те же "
+    "ряды **ООН WPP**, что и дальше в атласе. Это push к данным, а не охота за слайдерами."
+)
+with st.expander("Написать, где и когда (пример: «Владивосток, Россия, 1995» или «Poland 1980»)", expanded=True):
+    nl_txt = st.text_area(
+        "Ваша фраза",
+        placeholder="Например: родился в Бразилии в 2001 / Ukraine 1999 / Токио, Япония, 1975",
+        height=96,
+        label_visibility="collapsed",
+        key="nl_free_text",
+    )
+    nl_go = st.button("Разобрать и показать", type="primary", use_container_width=True, key="nl_submit")
+    if nl_go:
+        _p = parse_birth_description(nl_txt, COUNTRIES, YEAR_MIN, YEAR_MAX)
+        if _p.ok and _p.iso and _p.year:
+            st.session_state.bl_year = int(_p.year)
+            st.session_state.bl_iso = _p.iso
+            st.session_state.nl_ok_hint = _p.message_ru
+            st.session_state.nl_err = None
+        else:
+            st.session_state.nl_ok_hint = None
+            st.session_state.nl_err = _p.message_ru
+    if st.session_state.get("nl_ok_hint"):
+        st.success(st.session_state.nl_ok_hint)
+    if st.session_state.get("nl_err"):
+        st.warning(st.session_state.nl_err)
+
 col_yr, col_co = st.columns([1, 1], gap="large")
 with col_yr:
     year = st.slider(
         "ГОД РОЖДЕНИЯ",
         min_value=YEAR_MIN,
         max_value=YEAR_MAX,
-        value=1992,
         step=1,
+        key="bl_year",
         help=(
             "Календарный год: доля рождений в стране в сумме рождений по миру за тот же год."
         ),
     )
 with col_co:
-    default_iso = "RUS" if "RUS" in ISO_OPTIONS else ISO_OPTIONS[0]
     iso = st.selectbox(
         "СТРАНА (СОВРЕМЕННЫЕ ГРАНИЦЫ ООН)",
         options=ISO_OPTIONS,
-        index=ISO_OPTIONS.index(default_iso),
         format_func=lambda x: LABEL_FOR[x],
+        key="bl_iso",
         help=(
             "Оценки WPP строят как согласованные ряды по странам с 1950 г.; "
             "подробности территориальной базы см. в docs/METHODOLOGY.md."
@@ -526,6 +564,39 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+_share_prb_mini = share_of_prb_total(float(c_births)) if c_births > 0 else None
+with st.container(border=True):
+    st.markdown("**Коротко по смыслу** (не замена дашборду — тот же расчёт, другой формат доставки)")
+    st.markdown(
+        narrative_markdown_ru(
+            country_ru=country["r"],
+            year=year,
+            pct_world_year=pct,
+            one_in_world_year=one_in,
+            births_country_year=c_births,
+            births_world_year=w_births,
+            share_prb=_share_prb_mini,
+        )
+    )
+    _fig_mini = go.Figure(
+        go.Bar(
+            x=[country["r"], "Остальной мир"],
+            y=[c_births, max(w_births - c_births, 0)],
+            marker_color=[PALETTE["terracotta_d"], PALETTE["ink_light"]],
+        )
+    )
+    _fig_mini.update_layout(
+        paper_bgcolor=PALETTE["paper"],
+        plot_bgcolor=PALETTE["paper"],
+        height=280,
+        margin=dict(l=24, r=24, t=24, b=72),
+        yaxis=dict(title="число рождений за год", tickformat=",", gridcolor=PALETTE["paper_darker"]),
+        xaxis=dict(tickangle=-18),
+        showlegend=False,
+        font=dict(family="IBM Plex Sans", color=PALETTE["ink"], size=12),
+    )
+    st.plotly_chart(_fig_mini, width="stretch", config={"displayModeBar": False})
 
 
 # ============================================================================
