@@ -25,10 +25,18 @@ def test_country_heading_html_contains_flagcdn_and_name() -> None:
     assert "Германия" in h
 
 
-def test_country_title_ru_alias_plain() -> None:
-    from domain.country_flag import country_label_plain, country_title_ru
+def test_country_title_ru_matches_compact_flag() -> None:
+    from domain.country_flag import country_label_compact_flag, country_title_ru
 
-    assert country_title_ru("FRA", "Франция") == country_label_plain("FRA", "Франция")
+    assert country_title_ru("FRA", "Франция") == country_label_compact_flag("FRA", "Франция")
+
+
+def test_country_label_compact_flag_includes_name() -> None:
+    from domain.country_flag import country_label_compact_flag
+
+    t = country_label_compact_flag("RUS", "Россия")
+    assert "Россия" in t
+    assert len(t) >= len("Россия")
 
 
 def test_fmt_pct_chart_strips_trailing_zeros() -> None:

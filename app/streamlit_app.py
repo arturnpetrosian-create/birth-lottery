@@ -76,9 +76,15 @@ if _country_flag_mod is not None:
         "country_heading_html",
         _fallback_country_heading_html,
     )
+    country_label_compact_flag = getattr(
+        _country_flag_mod,
+        "country_label_compact_flag",
+        lambda iso3, name_ru: country_label_plain(iso3, name_ru),
+    )
 else:  # pragma: no cover
     country_label_plain = _fallback_country_label_plain
     country_heading_html = _fallback_country_heading_html
+    country_label_compact_flag = _fallback_country_label_plain
 
 from domain.country_ru_cases import in_country_where  # noqa: E402
 from domain.nl_birth_query import parse_birth_description  # noqa: E402
@@ -147,7 +153,7 @@ import streamlit as st  # noqa: E402
 # Конфигурация страницы
 # ============================================================================
 st.set_page_config(
-    page_title="Доли живорождений по странам · WPP 2024",
+    page_title="«Вероятность» родиться в своей стране · WPP 2024",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -265,10 +271,43 @@ st.markdown(
     .hero-sub {{
         font-size: 1.05rem;
         color: {PALETTE['ink_soft']};
-        max-width: 640px;
+        max-width: 680px;
         font-weight: 400;
         line-height: 1.6;
         margin-bottom: 36px;
+    }}
+
+    /* ── NL assist (видимая плашка, без expander) ─────────────────────── */
+    .nl-assist-kicker {{
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: {PALETTE['terracotta']};
+        margin: 0 0 8px 0;
+    }}
+    .nl-assist-title {{
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-size: 1.08rem;
+        font-weight: 600;
+        color: {PALETTE['ink']};
+        margin: 0 0 10px 0;
+        line-height: 1.35;
+    }}
+    .nl-assist-lead {{
+        font-size: 0.92rem;
+        color: {PALETTE['ink_soft']};
+        line-height: 1.55;
+        margin: 0 0 16px 0;
+        max-width: 720px;
+    }}
+    div[data-testid="stVerticalBlockBorderWrapper"] {{
+        border-radius: 14px !important;
+        border: 1px solid {PALETTE['paper_darker']} !important;
+        background: linear-gradient(165deg, {PALETTE['paper_dark']} 0%, {PALETTE['paper']} 100%) !important;
+        box-shadow: 0 4px 24px rgba(28, 28, 28, 0.06) !important;
+        padding: 6px 8px 12px !important;
+        margin-bottom: 1.75rem !important;
     }}
 
     /* ── eyebrows / section headings ────────────────────────────────── */
@@ -624,10 +663,11 @@ st.markdown(
     f"""
     <section>
         <div class="hero-eyebrow">ООН WPP 2024 · {YEAR_MIN}–{YEAR_MAX}</div>
-        <h1 class="hero-h1">Живорождения по странам мира</h1>
+        <h1 class="hero-h1">Какова &laquo;вероятность&raquo; родиться<br><em>в стране моего рождения?</em></h1>
         <p class="hero-sub">
-            Доля страны в мировом итоге за календарный год — по оценкам
-            <strong>World Population Prospects 2024</strong>.
+            В узком статистическом смысле для уже родившегося человека такой «вероятности» нет — зато есть
+            прозрачный численный аналог: <strong>какую долю всех младенцев в мире за выбранный год</strong>
+            составили бы живорождения именно этой страны — по оценкам <strong>World Population Prospects 2024</strong>.
         </p>
     </section>
     """,
@@ -644,7 +684,7 @@ LABEL_FOR = {iso: c["r"] for iso, c in sorted_countries}
 
 
 def _country_opt(iso_code: str) -> str:
-    return country_label_plain(iso_code, LABEL_FOR[iso_code])
+    return country_label_compact_flag(iso_code, LABEL_FOR[iso_code])
 ISO_TO_REGION = {iso: c["g"] for iso, c in COUNTRIES.items()}
 REGIONS = sorted({c["g"] for c in COUNTRIES.values()})
 
@@ -657,15 +697,31 @@ if st.session_state.bl_iso not in ISO_OPTIONS:
     st.session_state.bl_iso = default_iso0
 
 st.markdown("### Год и страна")
-with st.expander("Текстом (например: Россия, 1992)", expanded=False):
+with st.container(border=True):
+    st.markdown(
+        """
+        <p class="nl-assist-kicker">Запрос текстом</p>
+        <p class="nl-assist-title">Опишите страну и год — как одним сообщением ассистенту</p>
+        <p class="nl-assist-lead">Поддерживается русский и английский. После ответа обновятся поля
+        <strong>Год</strong> и <strong>Страна</strong> ниже; их можно править вручную.</p>
+        """,
+        unsafe_allow_html=True,
+    )
     nl_txt = st.text_area(
-        "Описание",
-        placeholder="Например: родился в Бразилии в 2001 / Ukraine 1999 / Токио, Япония, 1975",
-        height=88,
+        "Запрос по стране и году",
+        placeholder=(
+            "Пример: Россия, 1992 · родился в Бразилии в 2001 · Ukraine 1999 · Tokyo, Japan, 1975"
+        ),
+        height=100,
         label_visibility="collapsed",
         key="nl_free_text",
     )
-    nl_go = st.button("Подставить в поля ниже", type="primary", use_container_width=True, key="nl_submit")
+    nl_go = st.button(
+        "Подставить в поля ниже",
+        type="primary",
+        use_container_width=True,
+        key="nl_submit",
+    )
     if nl_go:
         _p = parse_birth_description(nl_txt, COUNTRIES, YEAR_MIN, YEAR_MAX)
         if _p.ok and _p.iso and _p.year:
@@ -724,9 +780,13 @@ st.markdown(
         <div class="result-label">{_head_main} · {year} · доля в мировом итоге живорождений</div>
         <div class="result-big">{fmt_pct(pct)}<span class="pct-sign">%</span></div>
         <div class="result-secondary">{_one_line}</div>
-        <div class="result-secondary" style="margin-top:10px;font-size:0.95rem;">
-            Не «вероятность родиться», а <strong>доля страны</strong> среди всех родившихся в мире в {year} году.
-            При равных шансах на каждого новорождённого это то же число.
+        <div class="result-secondary" style="margin-top:10px;font-size:0.95rem;text-align:left;max-width:640px;margin-left:auto;margin-right:auto;">
+            Строго говоря, <strong>это не вероятность «родиться именно там»</strong>: для уже случившегося
+            рождения так не формулируют без модели до зачатия.
+            Здесь — <strong>доля живорождений страны в мировом итоге за {year} год</strong>; при мысленном
+            равном шансе между всеми новорождёнными мира в этом году получается то же число.
+            Настоящий ex&nbsp;ante расчёт требовал бы данных о родителях и демографии до вашего рождения —
+            такой микроуровень недоступен; остаётся понятный межстрановой срез ООН.
         </div>
     </div>
     """,
@@ -782,7 +842,7 @@ for code, c in COUNTRIES.items():
         {
             "iso": code,
             "name": c["r"],
-            "name_disp": country_label_plain(code, c["r"]),
+            "name_disp": country_label_compact_flag(code, c["r"]),
             "births": b_k * 1000,
             "pct": p,
             "color": color_for_pct(p),
@@ -1085,9 +1145,9 @@ st.markdown("<br>", unsafe_allow_html=True)
 # § IV · ТОП СТРАН (ГОРИЗОНТАЛЬНАЯ ГИСТОГРАММА)
 # ============================================================================
 st.markdown(
-    """
+    f"""
     <div class="section-eyebrow">04 · Рейтинг стран</div>
-    <h2 class="section-title">Топ по числу живорождений в {year}</h2>
+    <h2 class="section-title">Топ по числу живорождений в&nbsp;<em>{year}</em></h2>
     <p class="caption">
         12 стран с наибольшим объёмом; ваша добавляется, если её нет в списке. У столбца — доля в мировом итоге.
     </p>
@@ -1107,7 +1167,7 @@ for code, b_k in display_list:
         {
             "rank": real_rank,
             "country": COUNTRIES[code]["r"],
-            "label": f"{real_rank:02d}  {country_label_plain(code, COUNTRIES[code]['r'])}",
+            "label": f"{real_rank:02d}  {country_label_compact_flag(code, COUNTRIES[code]['r'])}",
             "pct": b_k * 1000 / w_births * 100,
             "births": b_k * 1000,
             "is_user": code == iso,
@@ -1325,8 +1385,8 @@ iso_b = st.selectbox(
 )
 country_b = COUNTRIES[iso_b]
 years_full = list(range(YEAR_MIN, YEAR_MAX + 1))
-_nm_cmp_a = country_label_plain(iso, country["r"])
-_nm_cmp_b = country_label_plain(iso_b, country_b["r"])
+_nm_cmp_a = country_label_compact_flag(iso, country["r"])
+_nm_cmp_b = country_label_compact_flag(iso_b, country_b["r"])
 
 fig_cmp = go.Figure()
 fig_cmp.add_trace(

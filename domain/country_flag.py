@@ -44,8 +44,16 @@ def flag_emoji_alpha3(iso3: str) -> str:
 
 
 def country_label_plain(iso3: str, name_ru: str) -> str:
-    """Подпись без HTML: селекторы Plotly, списки, всплывающие подсказки."""
+    """Подпись без HTML: запасной вариант с ISO3 в скобках."""
     return f"{name_ru} ({iso3.strip().upper()})"
+
+
+def country_label_compact_flag(iso3: str, name_ru: str) -> str:
+    """Подпись для Plotly и виджетов: эмодзи-флаг + название (без «(RUS)»), иначе plain."""
+    e = flag_emoji_alpha3(iso3)
+    if e:
+        return f"{e}\u00a0{name_ru}"
+    return country_label_plain(iso3, name_ru)
 
 
 def country_heading_html(iso3: str, name_ru: str) -> str:
@@ -65,6 +73,6 @@ def country_heading_html(iso3: str, name_ru: str) -> str:
 
 
 def country_title_ru(iso3: str, name_ru: str, *, flag_first: bool = True) -> str:
-    """Совместимость со старым кодом: то же, что country_label_plain."""
+    """Совместимость со старым кодом: то же, что country_label_compact_flag."""
     _ = flag_first
-    return country_label_plain(iso3, name_ru)
+    return country_label_compact_flag(iso3, name_ru)
