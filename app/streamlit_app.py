@@ -16,6 +16,7 @@ streamlit_app.py
 """
 from __future__ import annotations
 
+import html
 import json
 import math
 import sys
@@ -47,10 +48,38 @@ _ensure_repo_root_on_path()
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
-from domain.country_flag import (  # noqa: E402
-    country_heading_html,
-    country_label_plain,
-)
+
+# Частичные деплои / старый country_flag на Cloud: не падаем, если нет новых имён.
+try:
+    from domain import country_flag as _country_flag_mod  # noqa: E402
+except ImportError:  # pragma: no cover
+    _country_flag_mod = None
+
+
+def _fallback_country_label_plain(iso3: str, name_ru: str) -> str:
+    return f"{name_ru} ({iso3.strip().upper()})"
+
+
+def _fallback_country_heading_html(iso3: str, name_ru: str) -> str:
+    _ = iso3
+    return html.escape(name_ru)
+
+
+if _country_flag_mod is not None:
+    country_label_plain = getattr(
+        _country_flag_mod,
+        "country_label_plain",
+        _fallback_country_label_plain,
+    )
+    country_heading_html = getattr(
+        _country_flag_mod,
+        "country_heading_html",
+        _fallback_country_heading_html,
+    )
+else:  # pragma: no cover
+    country_label_plain = _fallback_country_label_plain
+    country_heading_html = _fallback_country_heading_html
+
 from domain.country_ru_cases import in_country_where  # noqa: E402
 from domain.nl_birth_query import parse_birth_description  # noqa: E402
 from domain.prb_ever_lived import (  # noqa: E402
