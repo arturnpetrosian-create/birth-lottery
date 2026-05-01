@@ -42,7 +42,7 @@ html, body {
   margin: 0 auto;
   padding: 60px 40px 100px;
 }
-@media (max-width: 600px) { .container { padding: 36px 20px 60px; } }
+@media (max-width: 600px) { .container { padding: 36px 24px 60px; } }
 
 /* ========== MASTHEAD ========== */
 .masthead {
@@ -458,6 +458,8 @@ html, body {
 /* ========== RANKING ========== */
 .ranking-list {
   border-top: 1px solid var(--rule);
+  padding-left: 2px;
+  overflow-x: auto;
 }
 .rank-row {
   display: grid;
@@ -478,6 +480,9 @@ html, body {
   font-size: 13px;
   color: var(--ink-light);
   font-variant-numeric: tabular-nums;
+  min-width: 2.25rem;
+  text-align: right;
+  padding-right: 2px;
 }
 .rank-name {
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
@@ -509,7 +514,7 @@ html, body {
 }
 .rank-row.highlight .rank-bar { background: var(--terracotta); height: 12px; }
 @media (max-width: 600px) {
-  .rank-row { grid-template-columns: 32px 1fr auto; gap: 10px; }
+  .rank-row { grid-template-columns: 42px minmax(0, 1fr) auto; gap: 12px; padding-left: 2px; }
   .rank-bar-cell { display: none; }
 }
 
@@ -579,7 +584,7 @@ html, body {
 <section class="hero">
   <div class="hero-eyebrow">Условные вероятности по стране и году</div>
   <h1>Насколько вероятно было<br><em>родиться здесь</em><br>в выбранный год?</h1>
-  <p class="hero-sub">Число мировых живорождений по годам сильно меняется: в окне 1950–2024 примерно от ~92 до ~143&nbsp;млн в год (в 2020-е — порядка 130&nbsp;млн). Для выбранного года и страны показана <strong>доля её живорождений в суммарном мировом объёме за тот же год</strong>. Метафора «лотерея» — образ: имеется в виду <strong>мысленный эксперимент</strong> равновероятного выбора среди всех новорождённых мира в этом календарном году, а не «шанс родиться» у уже живущего человека; тогда доля совпадает с <em>P</em>(страна&nbsp;|&nbsp;год). Раздел §&nbsp;VI ниже — отдельная шкала по оценке PRB (~117&nbsp;млрд рождений).</p>
+  <p class="hero-sub">Источник — <strong>ООН, World Population Prospects&nbsp;2024</strong>: для каждой страны и года указана оценка числа рождений (в таблице <em>Births</em> / <em>live births</em>). Мировой итог от года к году заметно меняется: в 1950–2024 обычно ~92–143&nbsp;млн рождений в год (в 2020‑е — порядка 130&nbsp;млн). Для пары «страна + календарный год» показана <strong>доля рождений на её территории в мировом итоге за этот год</strong>. «Лотерея» — образ: мысленный эксперимент «равновероятно выбрать одного новорождённого из мировой когорты года» даёт <em>P</em>(страна&nbsp;|&nbsp;год), не «личный шанс родиться». §&nbsp;VI ниже — шкала PRB (~117&nbsp;млрд рождений за историю).</p>
 </section>
 
 <section class="controls">
@@ -597,15 +602,15 @@ html, body {
 </section>
 
 <section class="result-block">
-  <div class="result-label">Доля страны в мировых живорождениях года</div>
+  <div class="result-label">Доля страны в мировом итоге рождений года</div>
   <div class="result-big" id="bigPct">—</div>
   <div class="result-secondary" id="oneInX">—</div>
 </section>
 
 <section class="map-section section">
   <div class="section-heading">01 · Карта</div>
-  <h2 class="section-title">Распределение живорождений по странам в <em><span id="mapYearLabel">1992</span></em> году</h2>
-  <p class="caption">Насыщенность цвета — доля страны в сумме живорождений по миру за этот год (логарифмическая шкала). Светлые области — очень малые доли или нет данных.</p>
+  <h2 class="section-title">Распределение рождений по странам в <em><span id="mapYearLabel">1992</span></em> году</h2>
+  <p class="caption">Насыщенность цвета — доля рождений на территории страны в мировом итоге за год (логарифмическая шкала). Светлее — малые доли или нет данных.</p>
   <div class="map-wrap">
     <div id="mapLoading" class="map-loading">Загружаю карту мира</div>
     <svg id="worldMap" viewBox="0 0 960 500" preserveAspectRatio="xMidYMid meet" style="display:none"></svg>
@@ -620,8 +625,8 @@ html, body {
 
 <section class="section">
   <div class="section-heading">02 · Изотип</div>
-  <h2 class="section-title">Из тысячи условно случайных новорождённых мира —<br><em>сколько</em> из них здесь</h2>
-  <p class="caption" id="isotypeCaption">Каждая ячейка — один из тысячи равновероятно выбранных новорождённых мира за выбранный год.</p>
+  <h2 class="section-title">Тысяча «билетов» из мировой когорты года:<br><em>сколько из них приходится на выбранную страну</em></h2>
+  <p class="caption" id="isotypeCaption">Каждая точка — один из тысячи равновероятных исходов «кто родился в мире в выбранный год»; закрашены исходы по выбранной стране (ООН WPP).</p>
   <div id="isotypeGrid"></div>
   <div class="isotype-legend">
     <span><span class="legend-dot" style="background:var(--terracotta);border-color:var(--terracotta-dark)"></span><span id="legendCountry">страна</span></span>
@@ -646,21 +651,21 @@ html, body {
     <div class="context-cell">
       <div class="context-label">Место в мире</div>
       <div class="context-value" id="ctxRank">—</div>
-      <div class="context-note" id="ctxRankNote">ранг по числу живорождений</div>
+      <div class="context-note" id="ctxRankNote">ранг по числу рождений</div>
     </div>
   </div>
 </section>
 
 <section class="section">
   <div class="section-heading">04 · Рейтинг</div>
-  <h2 class="section-title">Страны с наибольшим числом живорождений в выбранный год</h2>
+  <h2 class="section-title">Страны с наибольшим числом рождений в выбранный год</h2>
   <div class="ranking-list" id="rankingList"></div>
 </section>
 
 <section class="section">
   <div class="section-heading">05 · Динамика</div>
-  <h2 class="section-title">Число живорождений в стране,<br><em>1950</em>—<em>2024</em></h2>
-  <p class="caption" id="timelineCaption">Линия показывает абсолютное число живорождений в год. В развитых экономиках видны послевоенные демографические волны; в развивающихся — поздний демографический переход с пиком в 1980–2000-х. Точка — выбранный вами год.</p>
+  <h2 class="section-title">Число рождений в стране,<br><em>1950</em>—<em>2024</em></h2>
+  <p class="caption" id="timelineCaption">Линия — число рождений по годам (оценка WPP). В индустриальных экономиках часто видны послевоенные волны; в странах с поздним переходом — более поздний пик. Точка — ваш год.</p>
   <svg id="timelineChart" viewBox="0 0 1000 280" preserveAspectRatio="none"></svg>
   <div class="timeline-axis">
     <span>1950</span><span>1965</span><span>1980</span><span>1995</span><span>2010</span><span>2024</span>
@@ -705,13 +710,13 @@ html, body {
 
 <footer class="footnotes">
   <h3>Источники и краткая методология</h3>
-  <p><strong>Данные.</strong> United Nations, Department of Economic and Social Affairs, Population Division (2024). <em>World Population Prospects 2024.</em> Лицензия CC&nbsp;BY&nbsp;3.0&nbsp;IGO. Показатель <em>Births (thousands)</em> — оценка числа живорождений за год по стране (Estimates 1950–2023 + medium 2024).</p>
+  <p><strong>Данные.</strong> United Nations, Department of Economic and Social Affairs, Population Division (2024). <em>World Population Prospects 2024.</em> Лицензия CC&nbsp;BY&nbsp;3.0&nbsp;IGO. Показатель <em>Births (thousands)</em> — оценка числа рождений за год по стране (Estimates 1950–2023 + medium 2024).</p>
   <p><strong>§&nbsp;VI (PRB).</strong> Блок выше с ~117&nbsp;млрд опирается на Kaneda &amp; Haub, «How Many People Have Ever Lived on Earth?», <a href="https://www.prb.org/articles/how-many-people-have-ever-lived-on-earth/" rel="noopener">Population Reference Bureau, 2022</a>; методика и ограничения — в <em>docs/METHODOLOGY.md</em>, §&nbsp;8.</p>
   <p><strong>Что считается.</strong> Доля <em>births(страна,&nbsp;год) / births(мир,&nbsp;год)</em> — условная вероятность страны при фиксированном календарном годе в мысленном эксперименте равновероятного выбора среди всех новорождённых планеты в этот год. Это <em>не</em> «вероятность родиться в таком-то году» относительно всех когда-либо живших; для последнего нужны суммарные оценки рождений по истории (в литературе часто приводят порядок 100–120&nbsp;млрд человек за всё время, точная величина зависит от методики).</p>
   <p><strong>Границы.</strong> В WPP применяют современные границы задним числом: «Россия в 1950» — нынешняя РФ в границах того времени (≈&nbsp;РСФСР); «Бангладеш в 1960» — нынешняя Бангладеш; Германия — объединение ФРГ и ГДР в одной оценке.</p>
   <p><strong>Качество.</strong> ООН сшивает регистрацию актов, переписи и обследования; используются сглаженные модели (в т.&nbsp;ч. когортно‑компонентного типа). Ориентир по погрешности: развитые страны с полной регистрацией ≈&nbsp;±1–2&nbsp;%, большинство остальных ≈&nbsp;±5–10&nbsp;%, зоны кризисов до ≈&nbsp;±15–20&nbsp;%.</p>
   <p><strong>Не учтено.</strong> Младенческая и детская смертность, миграция младенцев, смена гражданства — показатель про место и момент рождения.</p>
-  <p><strong>Покрытие.</strong> 211 территорий, 1950–2024, ≈&nbsp;15&nbsp;800 наблюдений «страна‑год»; мелкие сущности с &lt;&nbsp;1000 живорождений в год отфильтрованы.</p>
+  <p><strong>Покрытие.</strong> 211 территорий, 1950–2024, ≈&nbsp;15&nbsp;800 наблюдений «страна‑год»; мелкие сущности с &lt;&nbsp;1000 рождений в год отфильтрованы.</p>
   <p><strong>Ретроспектива до 1950.</strong> В WPP нет единой глобальной сетки раньше 1950; возможны комбинации исторических рядов численности, региональных оценок рождаемости, <em>Human Fertility Database</em> для подмножества стран и национальных реконструкций — с существенно большей неопределённостью.</p>
   <p><strong>Карта.</strong> Natural Earth 110m, d3-geo + topojson, проекция Equal Earth.</p>
 </footer>
@@ -932,18 +937,21 @@ function update() {
   else displayPct = pct.toFixed(4);
 
   $('bigPct').innerHTML = displayPct + '<span class="pct-sign">%</span>';
-  $('oneInX').innerHTML = `примерно <strong>1 из ${fmt(oneIn)}</strong> новорождённых того года`;
+  $('oneInX').innerHTML = `примерно <strong>1 из ${fmt(oneIn)}</strong> рождённых в мире в этом году`;
 
   // Isotype
   const dotsToFill = Math.round(pct * 10);
   const allDots = grid.querySelectorAll('.dot');
   allDots.forEach((d, i) => { d.classList.toggle('filled', i < dotsToFill); });
   if (dotsToFill === 0) {
-    $('isotypeCaption').textContent = `Меньше одного на тысячу: примерно ${fmt(pct * 1000)} из 100 000 новорождённых мира.`;
+    $('isotypeCaption').textContent =
+      `Доля настолько мала, что из 1000 условных позиций нечего закрашивать; по числу это порядка ${fmt(pct * 1000)} на 100 000 рождений в мире за ${year} год (WPP).`;
   } else if (dotsToFill > 800) {
-    $('isotypeCaption').textContent = `${dotsToFill} из 1000 отобранных новорождённых того года приходятся на эту страну — очень высокая доля в мировом объёме.`;
+    $('isotypeCaption').textContent =
+      `Из тысячи условных позиций ${dotsToFill} отнесены к выбранной стране — очень большая доля в мировом итоге за ${year} год.`;
   } else {
-    $('isotypeCaption').textContent = `Каждая точка — один из тысячи равновероятно выбранных новорождённых планеты в ${year} году. Закрашены рождения в выбранной стране.`;
+    $('isotypeCaption').textContent =
+      `Как читать: 1000 равновероятных исходов «кто родился в мире в ${year} году». Каждая точка — один исход; закрашены те, что по ООН приходятся на выбранную страну.`;
   }
   $('legendCountry').textContent = country.r;
 
