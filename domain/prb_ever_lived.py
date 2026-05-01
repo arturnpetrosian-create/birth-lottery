@@ -15,26 +15,6 @@ PRB_ARTICLE_TITLE_RU = (
 )
 PRB_ARTICLE_URL: str = "https://www.prb.org/articles/how-many-people-have-ever-lived-on-earth/"
 
-# Материалы для читателя: модельные оценки «всех рождений», методология WPP, поп-научное введение
-PRB_READINGS_RU: tuple[tuple[str, str], ...] = (
-    (
-        "Kaneda & Haub (PRB, 2022): сколько людей когда-либо родилось",
-        PRB_ARTICLE_URL,
-    ),
-    (
-        "Our World in Data: рождаемость и численность (данные и графики)",
-        "https://ourworldindata.org/births",
-    ),
-    (
-        "ООН, World Population Prospects: методология оценок",
-        "https://population.un.org/wpp/Methodology/",
-    ),
-    (
-        "BBC Future (English): how many people have ever lived",
-        "https://www.bbc.com/future/article/20190311-how-many-people-have-ever-lived-on-earth",
-    ),
-)
-
 #: Ориентир доли ныне живущих среди всех когда-либо родившихся (PRB используют ~8 млрд / 117 млрд).
 #: В интерфейсе приоритетно брать численность из метаданных WPP (метка 2024), если есть.
 PRB_ROUGH_POPULATION_FOR_SHARE_2022: int = 8_000_000_000

@@ -49,11 +49,31 @@ import pandas as pd  # noqa: E402
 from domain.prb_ever_lived import (  # noqa: E402
     EVER_LIVED_PRB_2022,
     PRB_ARTICLE_URL,
-    PRB_READINGS_RU,
     format_tiny_percent,
     one_in_reciprocal,
     share_of_prb_total,
 )
+
+# Ссылки для раздела § VI — в streamlit-приложении, чтобы деплой не зависел от рассинхрона кэша `domain` на Cloud.
+PRB_READINGS_RU: tuple[tuple[str, str], ...] = (
+    (
+        "Kaneda & Haub (PRB, 2022): сколько людей когда-либо родилось",
+        PRB_ARTICLE_URL,
+    ),
+    (
+        "Our World in Data: рождаемость и численность (данные и графики)",
+        "https://ourworldindata.org/births",
+    ),
+    (
+        "ООН, World Population Prospects: методология оценок",
+        "https://population.un.org/wpp/Methodology/",
+    ),
+    (
+        "BBC Future (English): how many people have ever lived",
+        "https://www.bbc.com/future/article/20190311-how-many-people-have-ever-lived-on-earth",
+    ),
+)
+
 import plotly.graph_objects as go  # noqa: E402
 import streamlit as st  # noqa: E402
 
