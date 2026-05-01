@@ -267,12 +267,6 @@ st.markdown(
         font-weight: 600;
         color: {PALETTE['terracotta_d']};
     }}
-    span.flag-emoji {{
-        font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", emoji;
-        font-size: 1.15em;
-        vertical-align: -0.06em;
-        margin-right: 2px;
-    }}
     .hero-sub {{
         font-size: 1.05rem;
         color: {PALETTE['ink_soft']};
