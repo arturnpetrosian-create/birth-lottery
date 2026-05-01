@@ -1034,7 +1034,7 @@ fig_bar = go.Figure(
         textfont=dict(family="IBM Plex Mono", color=PALETTE["ink_soft"], size=11),
         hovertemplate=(
             "<b>%{y}</b><br>%{x:.3f}% мирового итога года"
-            "<br>%{customdata:,.0f} рожд.<extra></extra>"
+            "<br>%{customdata:,.0f} живорождений<extra></extra>"
         ),
         customdata=bar_df["births"],
         cliponaxis=False,
@@ -1398,7 +1398,7 @@ if HISTORICAL is not None:
             mode="lines",
             name="центральный сценарий",
             line=dict(color=PALETTE["terracotta_d"], width=2.2),
-            hovertemplate="%{x}: %{y:.5f}% всех рожд.<extra></extra>",
+            hovertemplate="%{x}: %{y:.5f}% всех живорождений<extra></extra>",
         )
     )
     fig_hist.add_vline(
@@ -1424,7 +1424,7 @@ if HISTORICAL is not None:
             gridcolor=PALETTE["paper_darker"],
             tickfont=dict(family="IBM Plex Mono", color=PALETTE["ink_light"], size=10),
             title=dict(
-                text="доля всех рожд., %",
+                text="доля всех живорождений, %",
                 font=dict(family="IBM Plex Mono", size=10, color=PALETTE["ink_light"]),
             ),
             rangemode="tozero",
