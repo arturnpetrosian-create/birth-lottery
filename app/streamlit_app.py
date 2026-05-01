@@ -22,9 +22,28 @@ import sys
 from pathlib import Path
 from typing import Any
 
-_ROOT = Path(__file__).resolve().parent.parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
+
+def _ensure_repo_root_on_path() -> None:
+    """Streamlit Cloud запускает `app/streamlit_app.py`; пакет `domain` лежит в корне репозитория."""
+    here = Path(__file__).resolve()
+    candidates = (
+        here.parent.parent,
+        here.parent,
+        Path.cwd(),
+    )
+    for c in candidates:
+        try:
+            if (c / "domain" / "prb_ever_lived.py").is_file():
+                root = str(c.resolve())
+                if root not in sys.path:
+                    sys.path.insert(0, root)
+                return
+        except OSError:
+            continue
+    sys.path.insert(0, str(here.parent.parent))
+
+
+_ensure_repo_root_on_path()
 
 import pandas as pd  # noqa: E402
 from domain.prb_ever_lived import (  # noqa: E402
@@ -344,7 +363,7 @@ st.markdown(
 # ============================================================================
 # Загрузка данных
 # ============================================================================
-ROOT = _ROOT
+ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT / "data" / "births_compact.json"
 
 
